@@ -1,6 +1,6 @@
 # Development Plan
 
-## Phase 1 — Data upload and profiling (this build)
+## Phase 1 — Data upload and profiling ✅ Completed
 
 - [x] Monorepo scaffolding (frontend, backend, sample_data, docs)
 - [x] FastAPI backend: config, logging, unified error handling
@@ -12,47 +12,58 @@
 - [x] Next.js dashboard: overview, column types, data preview, structure,
       missing-value chart, column quality table
 - [x] Sample World Bank–style panel dataset
-- [x] Backend unit tests (pytest)
+- [x] Backend unit tests (pytest, 23 tests)
 - [x] Reserved interfaces for the future AI planning layer (mocked)
 
-## Phase 2 — Model execution and diagnostics
+## Phase 2 — Variable configuration and transformation execution ✅ Completed
 
-- [ ] Variable role selection UI (dependent/independent/controls/entity/time)
-      with user override of rule-based suggestions
-- [ ] Cleaning & transformation execution (log, winsorize, standardize,
-      median/mean imputation, drop duplicates/missing) + transformation log
-- [ ] OLS and robust-SE OLS via `statsmodels`
-- [ ] Pooled OLS, entity FE, random effects, two-way FE via `linearmodels`
-- [ ] Clustered standard errors by entity
-- [ ] Diagnostics: VIF, Breusch-Pagan, Durbin-Watson, residual normality,
-      Hausman test (when both FE and RE are estimable)
-- [ ] `POST /api/models/run`, `GET /api/models/{id}`,
-      `GET /api/models/{id}/diagnostics`
+- [x] Variable role selection UI (dependent / primary IV / controls / entity / time)
+      with rule-based pre-fill and full user override
+- [x] `TransformationPanel`: drop duplicates, drop missing rows, median/mean
+      imputation, winsorize (configurable percentiles), log transform (new col),
+      standardize (z-score, new col) + transformation log
+- [x] `POST /api/datasets/{id}/transform` — preview transformation on stored copy
 
-## Phase 3 — Report generation and model comparison
+## Phase 3 — Regression execution and diagnostics ✅ Completed
 
-- [ ] `ModelScoringService`: compare a bounded set of user/system-selected
-      models on adjusted R², AIC/BIC, VIF, heteroskedasticity, diagnostics
-- [ ] Rule-driven explanation generator (no external LLM call) covering
-      dataset summary, cleaning steps, model formula, coefficient
-      interpretation, diagnostics summary, limitations, causal-language guard
-- [ ] Report export: HTML, Markdown, JSON artifact
-      (`GET /api/models/{id}/report`, `/export/json`)
-- [ ] End-to-end demo using `sample_data/world_bank_panel_sample.xlsx`
+- [x] OLS and Robust OLS (HC1) via `statsmodels`
+- [x] Pooled OLS, Entity Fixed Effects, Random Effects, Two-Way Fixed Effects
+      via `linearmodels`
+- [x] Clustered standard errors by entity
+- [x] Diagnostics: VIF, Breusch-Pagan, Jarque-Bera, Durbin-Watson, Hausman test
+- [x] Correlation matrix, descriptive statistics for model variables
+- [x] `POST /api/analyses/run`, `GET /api/analyses/{id}`,
+      `GET /api/analyses/{id}/diagnostics`, `GET /api/analyses/{id}/report`,
+      `GET /api/analyses/{id}/export/json`
+- [x] Rule-based model recommendation (no LLM)
+- [x] Full analysis results page: coefficient table, coefficient plot (95% CI),
+      residual-vs-fitted chart, actual-vs-predicted chart, correlation heatmap,
+      diagnostics cards, transformation log
+- [x] Reproducible JSON export artifact with software versions
+- [x] 76 backend pytest tests (all passing)
 
-## Phase 4 — AI planning layer
+## Phase 4 — Rule-based report generation and model comparison
+
+- [ ] `ModelScoringService`: compare a bounded set of models on adj. R², AIC/BIC,
+      VIF, heteroskedasticity, diagnostics summary
+- [ ] Rule-driven narrative report generator (no external LLM) covering dataset
+      summary, cleaning steps, formula, coefficient interpretation, diagnostics,
+      causal-language guard
+- [ ] Report export: HTML, Markdown
+- [ ] Side-by-side model comparison table
+
+## Phase 5 — AI planning layer
 
 - [ ] Wire `variable_semantics.py` to a real semantic-role suggestion model
-      (still rule-checkable; suggestions only, never auto-applied)
+      (suggestions only, never auto-applied)
 - [ ] Wire `model_planner.py` to propose a small, ranked set of candidate
-      specifications for user review, replacing the current mock
+      specifications for user review
 
-## Phase 5 — Autonomous Econometric Discovery Engine
+## Phase 6 — Autonomous Econometric Discovery Engine
 
-- [ ] Implement `discovery_engine.py`: bounded candidate dependent-variable
-      discovery, plausible independent/control filtering, limited candidate
-      model generation, multiple-testing correction
-- [ ] Every finding labeled `Exploratory finding`, `Not causal evidence`,
-      `Requires theory-driven validation`
-- [ ] Explicitly no unconstrained/exhaustive search over all variable
-      combinations
+- [ ] Implement `discovery_engine.py`: bounded candidate DV discovery,
+      plausible IV/control filtering, limited candidate model generation,
+      multiple-testing correction
+- [ ] Every finding labeled `Exploratory finding / Not causal evidence /
+      Requires theory-driven validation`
+- [ ] Explicitly no unconstrained/exhaustive search over all variable combinations
