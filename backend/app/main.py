@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import datasets
+from app.api import analyses, datasets
 from app.core.config import settings
 from app.core.errors import AppError, app_error_handler, unhandled_exception_handler
 from app.core.logging import configure_logging
@@ -29,6 +29,7 @@ app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.include_router(datasets.router, prefix=settings.api_prefix)
+app.include_router(analyses.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["meta"])

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UploadPanel } from "@/components/UploadPanel";
 import { DatasetOverviewSection } from "@/components/DatasetOverviewSection";
@@ -71,6 +72,11 @@ export default function Home() {
               <>
                 <StructureSection structure={profile.structure} />
                 <DataQualitySection quality={profile.quality} />
+                <div className="flex justify-end">
+                  <Link href={`/datasets/${overview.dataset_id}/model`}>
+                    <Button>Configure &amp; Run Model →</Button>
+                  </Link>
+                </div>
               </>
             )}
           </>

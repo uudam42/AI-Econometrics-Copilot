@@ -1,151 +1,272 @@
+[中文文档](README.zh-CN.md)
+
 # AI Econometrics Copilot
 
-An explainable AI-assisted econometric modeling platform for economic research.
+An explainable, reproducible econometric modeling platform for economic research.
+AI understands and recommends — Python statistical libraries do all real computation — users retain final research judgement.
 
-一个面向经济学研究的、可解释且可复现的 AI 计量建模与分析平台。
+> **Principle:** LLMs never generate regression coefficients, p-values, R², or significance conclusions. All statistical values are computed by `statsmodels`, `linearmodels`, `pandas`, `numpy`, and `scipy`.
 
-Researchers, students, and analysts upload a dataset; the system understands its
-structure, profiles data quality, helps configure variable roles, runs *real*
-statistical models (OLS, panel fixed/random effects), runs standard
-econometric diagnostics, and produces an explainable, reproducible report —
-without ever asking a language model to invent a coefficient or p-value.
+---
 
-```
-AI  → understands, plans, explains, recommends
-Python (pandas / statsmodels / linearmodels) → computes
-User → keeps final variable and modeling judgment
-```
+## Key Features
 
-## Status: Phase 1 (this build)
-
-This build implements **Step 1 (project scaffolding)** and **Step 2 (upload +
-data profiling)** of the MVP plan in [docs/development_plan.md](docs/development_plan.md).
-See "Implemented in this build" below for the exact feature list.
-
-## Features
-
-### Implemented in this build
-
-- CSV / Excel (`.csv`, `.xlsx`, `.xls`) upload with type/size/content validation
-- Automatic dataset preview (row/column counts, dtypes, first 10 rows)
-- Rule-based column role inference (Potential Outcome / Explanatory / Control /
-  Entity ID / Time Variable / Categorical), exposed as hints, never enforced
-- `DatasetProfiler`: missing values, duplicate rows, constant columns, IQR and
-  Z-score outlier detection, skewness/kurtosis, zero/negative ratios, and
-  explainable transformation suggestions (e.g. log transform)
-- Rule-driven panel / time-series / cross-sectional structure detection
-  (balanced/unbalanced panel, entity & time column identification)
-- Academic-styled Next.js dashboard: dataset overview, column types, data
-  preview, detected structure, missing-value chart, column quality table
-- Reserved (not yet wired) interfaces for the future AI planning / discovery
-  layer: `variable_semantics.py`, `model_planner.py`, `discovery_engine.py`,
-  `econometric_rules.py`
-- Backend unit tests (pytest) covering upload, column typing, profiling, and
-  structure detection
-
-### Not yet implemented (future phases)
-
-- OLS / robust OLS / panel fixed & random effects execution and diagnostics
-  (VIF, Breusch-Pagan, Hausman, Durbin-Watson) — Phase 2
-- Cleaning/transformation execution + transformation log — Phase 2/3
-- Model comparison & recommendation service — Phase 3
-- Rule-based report generation (HTML/Markdown/JSON export) — Phase 3
-- Autonomous Econometric Discovery Engine — Phase 5 (interfaces only, mocked)
-
-## Tech stack
-
-| Layer | Technology |
+| Feature | Description |
 |---|---|
-| Frontend | Next.js (App Router), TypeScript, React, Tailwind CSS, shadcn/ui-style components, Recharts |
-| Backend | Python, FastAPI, Pydantic |
-| Analysis | pandas, numpy, scipy, statsmodels, linearmodels, scikit-learn, openpyxl |
+| Dataset upload | CSV, Excel (.xlsx/.xls), up to 50 MB |
+| Data profiling | Missing values, outliers, skewness, transformation suggestions |
+| Structure detection | Panel / time-series / cross-sectional (rule-based, never name-only) |
+| Variable role selection | Dependent, primary IV, controls, entity ID, time — with rule-based pre-fill |
+| Data transformations | Log, winsorize, standardize, imputation, drop duplicates/missing |
+| OLS regression | Ordinary and HC1-robust standard errors via `statsmodels` |
+| Panel regression | Pooled OLS, Fixed Effects, Random Effects, Two-Way FE via `linearmodels` |
+| Clustered SE | Clustered by entity for panel models |
+| Diagnostics | VIF, Breusch-Pagan, Jarque-Bera, Durbin-Watson, Hausman test |
+| Model recommendation | Rule-driven suggestions (no LLM) |
+| Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
+| Reproducible export | Complete JSON artifact including software versions |
 
-## Project layout
+---
+
+## Architecture
+
+```
+Upload → Profile → Variable Selection → Transformation → Model Run → Results
+```
+
+```
+frontend/         Next.js 16 + TypeScript + Tailwind + Recharts
+backend/          FastAPI + Pydantic v2 + pandas + statsmodels + linearmodels
+sample_data/      World Bank–style synthetic panel (20 countries × 15 years)
+docs/             Architecture, API reference, econometric rules, dev plan
+```
+
+**Separation of concerns:**
+- `app/services/` — pure data functions (profiling, structure detection, transformations)
+- `app/analysis/` — statistical computation wrappers (OLS, panel, diagnostics)
+- `app/api/` — thin HTTP routing, no business logic
+- `app/schemas/` — Pydantic models shared between layers
+
+---
+
+## Technology Stack
+
+**Backend**
+- Python 3.12+
+- FastAPI, Pydantic v2, pydantic-settings
+- pandas, numpy, scipy
+- statsmodels (OLS, diagnostics)
+- linearmodels (panel regression)
+- openpyxl (Excel support)
+- pytest, httpx
+
+**Frontend**
+- Next.js 16, React 19, TypeScript 5
+- Tailwind CSS v4
+- Recharts v3
+- lucide-react
+
+---
+
+## Repository Structure
 
 ```
 ai-econometrics-copilot/
-├── frontend/        Next.js app (dashboard UI)
-├── backend/          FastAPI app (upload, profiling, structure detection)
-├── sample_data/       Synthetic World Bank–style panel dataset
-├── docs/               architecture / API / rules / roadmap docs
-└── docker-compose.yml
+├── backend/
+│   ├── app/
+│   │   ├── analysis/          # diagnostics.py, model_runner.py, ols_models.py, panel_models.py, model_recommender.py, econometric_rules.py
+│   │   ├── api/               # datasets.py, analyses.py
+│   │   ├── core/              # config.py, errors.py, logging.py
+│   │   ├── models/            # dataset_registry.py, analysis_registry.py
+│   │   ├── schemas/           # dataset.py, modeling.py, common.py
+│   │   └── services/          # column_typing.py, data_profiler.py, dataset_service.py, structure_detector.py, transformation_service.py
+│   └── tests/
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx                         # Home: upload + profile dashboard
+│   │   ├── datasets/[datasetId]/model/      # Variable selection + model config
+│   │   └── analyses/[analysisId]/           # Results dashboard
+│   ├── components/
+│   │   ├── modeling/                        # VariableRoleSelector, TransformationPanel, ModelConfigurationPanel
+│   │   ├── results/                         # CoefficientTable, CoefficientPlot, ResidualPlot, CorrelationHeatmap, DiagnosticsPanel
+│   │   └── ui/                              # card, button, badge, table, select
+│   ├── lib/                                 # api.ts, utils.ts
+│   └── types/                               # dataset.ts, modeling.ts
+├── sample_data/
+│   └── world_bank_panel_sample.xlsx
+├── docs/
+│   ├── architecture.md
+│   ├── api.md
+│   ├── econometric_rules.md
+│   └── development_plan.md
+└── scripts/
+    └── generate_sample_data.py
 ```
 
-## Running locally
+---
 
-### Backend
+## Prerequisites
+
+- Python 3.12+
+- Node.js 20+
+- `uv` (recommended) or `pip`
+
+---
+
+## Backend Setup
 
 ```bash
 cd backend
-uv venv .venv --python 3.12   # or: python3 -m venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt   # or: pip install -r requirements.txt
-cp ../.env.example .env   # optional, defaults work out of the box
-uvicorn app.main:app --reload --port 8000
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-The API is served at `http://localhost:8000/api`, health check at
-`http://localhost:8000/health`, interactive docs at `http://localhost:8000/docs`.
+Or with `uv`:
+```bash
+cd backend
+uv sync
+```
 
-### Frontend
+---
+
+## Frontend Setup
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
-npm run dev
 ```
 
-Visit `http://localhost:3000`.
+---
 
-### Sample workflow
+## Environment Variables
 
-1. Start both servers above.
-2. Open the frontend and upload [`sample_data/world_bank_panel_sample.xlsx`](sample_data/world_bank_panel_sample.xlsx).
-3. Review the Dataset Overview, Column Types, and Data Preview cards.
-4. Review the Detected Structure card — it should identify a **balanced panel**
-   of 20 countries over 15 years (`country` × `year`).
-5. Review the Data Quality Summary — missing values in `education_spending`,
-   `employment_rate`, `trade_openness`, and outliers/log-transform suggestions
-   for `gdp_per_capita`.
+**Backend** (optional, defaults shown):
+```
+ECOPILOT_CORS_ORIGINS=["http://localhost:3000"]
+ECOPILOT_MAX_UPLOAD_SIZE_BYTES=52428800
+ECOPILOT_LOG_LEVEL=INFO
+```
 
-Default demo research question (for the modeling phase, not yet implemented):
-*Is internet penetration associated with GDP per capita across countries over time?*
+**Frontend** (optional):
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+```
 
-## Testing
+---
 
+## How to Run Locally
+
+**Backend:**
 ```bash
 cd backend
 source .venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## How to Run Tests
+
+```bash
+cd backend
 python -m pytest -q
 ```
 
+Expected: **76 tests passing**.
+
+Frontend type check:
 ```bash
 cd frontend
-npm run lint
 npx tsc --noEmit
 npm run build
 ```
 
-## Screenshots
+---
 
-_Placeholder — add dashboard screenshots here once the UI is finalized._
+## Example Workflow
 
-## Documentation
+1. Upload `sample_data/world_bank_panel_sample.xlsx`
+2. Review dataset profile — panel detected (20 entities × 15 periods)
+3. Click **Configure & Run Model →**
+4. Variable roles are pre-filled: `gdp_per_capita` as outcome, `internet_users` as explanatory
+5. Optionally add log transform for right-skewed variables
+6. Select **Fixed Effects** (recommended for panel data)
+7. Enable clustered standard errors by entity
+8. Click **Run Analysis →**
+9. View coefficient table, significance stars, Hausman test, VIF, residual plots
+10. Export reproducible JSON artifact
 
-- [docs/architecture.md](docs/architecture.md) — frontend/backend architecture, data flow, reproducibility design
-- [docs/api.md](docs/api.md) — REST API reference
-- [docs/econometric_rules.md](docs/econometric_rules.md) — thresholds and rules used by the profiler/diagnostics
-- [docs/development_plan.md](docs/development_plan.md) — phased roadmap
+---
+
+## Supported Models
+
+| Model | Library | Use Case |
+|---|---|---|
+| OLS | statsmodels | Cross-sectional / baseline |
+| Robust OLS (HC1) | statsmodels | Heteroskedastic errors |
+| Pooled OLS | linearmodels | Panel data, ignoring panel structure |
+| Fixed Effects | linearmodels | Time-invariant unobserved heterogeneity |
+| Random Effects | linearmodels | Uncorrelated entity effects |
+| Two-Way Fixed Effects | linearmodels | Entity + time effects |
+
+---
+
+## Supported Diagnostics
+
+| Diagnostic | Purpose |
+|---|---|
+| VIF | Multicollinearity check (threshold: 5 / 10) |
+| Breusch-Pagan | Heteroskedasticity test |
+| Jarque-Bera | Residual normality test |
+| Durbin-Watson | First-order autocorrelation |
+| Hausman Test | FE vs RE selection (panel data) |
+| Correlation Matrix | Pearson correlation heatmap |
+| Descriptive Statistics | Per-variable summary |
+
+---
+
+## Current Limitations
+
+- In-process storage only (no database) — data is lost on server restart
+- No authentication or multi-user isolation
+- No arbitrary formula editor (variables selected through UI)
+- No LaTeX/PDF report export
+- Hausman test uses pseudo-inverse for robustness — may report unavailable for near-singular matrices
+- Two-way fixed effects automatically drops absorbed variables (linearmodels `drop_absorbed=True`)
+
+---
+
+## Reproducibility Design
+
+Every `POST /api/analyses/run` stores a complete analysis record including:
+- Original dataset metadata
+- Every transformation applied (with row counts before/after)
+- Exact model formula
+- All coefficients and diagnostics
+- Software library versions
+- Timestamp
+
+Export via `GET /api/analyses/{id}/export/json`.
+
+---
 
 ## Roadmap
 
-See [docs/development_plan.md](docs/development_plan.md) for the full phase breakdown
-(Phase 1: upload & profiling → Phase 2: modeling & diagnostics → Phase 3: reporting
-→ Phase 4: AI planning layer → Phase 5: autonomous discovery engine).
+- **Phase 4:** Rule-based narrative report generation, model comparison table
+- **Phase 5:** AI planning layer — semantic variable role suggestion, candidate model proposals
+- **Phase 6:** Autonomous discovery engine with bounded search and multiple-testing correction
 
-## Disclaimer
+---
 
-This platform identifies statistical associations. It does not establish
-causal effects unless additional identification assumptions are explicitly
-justified by the researcher.
+## Causal Language Disclaimer
+
+> This analysis identifies statistical associations and does not establish causal effects unless additional identification assumptions are justified.

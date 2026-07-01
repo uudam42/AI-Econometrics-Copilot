@@ -1,4 +1,4 @@
-"""Dataset upload, overview, and profiling endpoints."""
+"""Dataset upload, overview, profiling, and transformation endpoints."""
 from __future__ import annotations
 
 from fastapi import APIRouter, File, UploadFile
@@ -9,10 +9,12 @@ from app.schemas.dataset import (
     DatasetProfileResponse,
     DatasetSummary,
 )
+from app.schemas.modeling import AnalysisConfigurationRequest, TransformResult
 from app.services.column_typing import infer_all_column_types
 from app.services.data_profiler import profile_dataset
 from app.services.dataset_service import build_preview, ingest_upload
 from app.services.structure_detector import detect_structure
+from app.services.transformation_service import apply_transformations
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 
@@ -64,3 +66,22 @@ async def get_dataset_profile(dataset_id: str) -> DatasetProfileResponse:
     quality = profile_dataset(dataset_id, df)
     structure = detect_structure(df)
     return DatasetProfileResponse(dataset_id=dataset_id, quality=quality, structure=structure)
+
+
+@router.post("/{dataset_id}/transform", response_model=TransformResult)
+async def transform_dataset(dataset_id: str, config: AnalysisConfigurationRequest) -> TransformResult:
+    """Apply transformations to a copy of the dataset and persist the processed copy."""
+    record = registry.get(dataset_id)
+    ops = [t.model_dump() for t in config.transformations]
+    rows_before = len(record.dataframe)
+    processed_df, log = apply_transformations(record.dataframe, ops)
+    record.processed_dataframe = processed_df
+    record.transformation_log = [entry.model_dump() for entry in log]
+    new_cols = [c for c in processed_df.columns if c not in record.dataframe.columns]
+    return TransformResult(
+        dataset_id=dataset_id,
+        rows_before=rows_before,
+        rows_after=len(processed_df),
+        columns_added=new_cols,
+        log=log,
+    )
