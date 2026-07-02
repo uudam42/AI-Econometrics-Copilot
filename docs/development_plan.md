@@ -42,18 +42,41 @@
 - [x] Reproducible JSON export artifact with software versions
 - [x] 76 backend pytest tests (all passing)
 
-## Phase 4 — Rule-based report generation and model comparison
+## Phase 4 — Multi-model comparison, transparent recommendation, research report ✅ Completed
 
-- [ ] `ModelScoringService`: compare a bounded set of models on adj. R², AIC/BIC,
-      VIF, heteroskedasticity, diagnostics summary
-- [ ] Rule-driven narrative report generator (no external LLM) covering dataset
-      summary, cleaning steps, formula, coefficient interpretation, diagnostics,
-      causal-language guard
-- [ ] Report export: HTML, Markdown
-- [ ] Side-by-side model comparison table
+- [x] Multi-model comparison engine: run up to 6 models on the same variable
+      selection and processed dataset; per-model failures captured without
+      cancelling the full comparison
+- [x] Compatible model filter: panel models marked unavailable when no entity/time
+      columns are configured
+- [x] Standardized comparison metrics: R², Adj. R², Within/Between/Overall R² (panel),
+      AIC, BIC, N, entity/period counts, SE type, VIF summary, Hausman p-value
+- [x] Transparent multi-criteria scoring (7 weighted criteria):
+      structural compatibility (25%), Hausman guidance (20%), heteroskedasticity
+      robustness (15%), model fit (15%), parsimony (10%), sample size (10%),
+      estimation success (5%)
+- [x] Coefficient stability view: primary IV coefficient across all completed models
+      with direction, CI, and significance
+- [x] `POST /api/comparisons/run`, `GET /api/comparisons/{id}`,
+      `GET /api/comparisons/{id}/export/json`
+- [x] Rule-driven research report generator (no LLM): deterministic narrative
+      covering 14 required sections — metadata, variables, transformations,
+      regression table, coefficient interpretation (including log-dep-var % change),
+      diagnostics, causal warning, reproducibility
+- [x] Report export: Markdown, self-contained HTML, JSON artifact
+- [x] `POST /api/reports/generate`, `GET /api/reports/{id}`,
+      `GET /api/reports/{id}/markdown`, `GET /api/reports/{id}/html`,
+      `GET /api/reports/{id}/export/json`
+- [x] Frontend: `/datasets/[id]/compare`, `/comparisons/[id]`, `/reports/[id]`
+- [x] Frontend components: ModelComparisonTable, ModelRecommendationCard,
+      ModelScoreBreakdown, CoefficientStabilityTable, ResearchReportViewer,
+      ReportMetadataPanel, ReportExportActions
+- [x] 115 backend pytest tests passing (76 Phase 1–3 + 39 Phase 4)
 
-## Phase 5 — AI planning layer
+## Phase 5 — Natural-language research question mapping and AI planning layer
 
+- [ ] Accept a user-typed research question (e.g. "Is internet penetration
+      associated with GDP per capita?") and map it to candidate variables
 - [ ] Wire `variable_semantics.py` to a real semantic-role suggestion model
       (suggestions only, never auto-applied)
 - [ ] Wire `model_planner.py` to propose a small, ranked set of candidate

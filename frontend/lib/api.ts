@@ -110,3 +110,65 @@ export async function exportAnalysisJson(analysisId: string): Promise<unknown> {
   }
   return response.json();
 }
+
+// ─── Comparison API ────────────────────────────────────────────────────────
+
+export async function runComparison(
+  request: import("@/types/comparison").ComparisonRequest
+): Promise<import("@/types/comparison").ComparisonResult> {
+  const response = await fetch(`${API_BASE_URL}/comparisons/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getComparison(
+  comparisonId: string
+): Promise<import("@/types/comparison").ComparisonResult> {
+  const response = await fetch(`${API_BASE_URL}/comparisons/${comparisonId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function exportComparisonJson(comparisonId: string): Promise<unknown> {
+  const response = await fetch(`${API_BASE_URL}/comparisons/${comparisonId}/export/json`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+// ─── Reports API ───────────────────────────────────────────────────────────
+
+export async function generateReport(
+  request: import("@/types/comparison").ReportGenerationRequest
+): Promise<import("@/types/comparison").ReportArtifact> {
+  const response = await fetch(`${API_BASE_URL}/reports/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getReport(
+  reportId: string
+): Promise<import("@/types/comparison").ReportArtifact> {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getReportMarkdown(reportId: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}/markdown`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.text();
+}
+
+export async function getReportHtml(reportId: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/reports/${reportId}/html`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.text();
+}
