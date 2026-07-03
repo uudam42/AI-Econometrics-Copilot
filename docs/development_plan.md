@@ -73,14 +73,34 @@
       ReportMetadataPanel, ReportExportActions
 - [x] 115 backend pytest tests passing (76 Phase 1–3 + 39 Phase 4)
 
-## Phase 5 — Natural-language research question mapping and AI planning layer
+## Phase 5 — Natural-language research question mapping and AI planning layer ✅ Completed
 
-- [ ] Accept a user-typed research question (e.g. "Is internet penetration
+- [x] Accept a user-typed research question (e.g. "Is internet penetration
       associated with GDP per capita?") and map it to candidate variables
-- [ ] Wire `variable_semantics.py` to a real semantic-role suggestion model
-      (suggestions only, never auto-applied)
-- [ ] Wire `model_planner.py` to propose a small, ranked set of candidate
-      specifications for user review
+- [x] Research question parser: normalize questions, detect causal vs.
+      association vs. exploratory intent via keyword patterns
+- [x] Economics synonym dictionary: 20+ semantic concepts (GDP, trade,
+      education, inflation, etc.) with extensible token-based matching
+- [x] Dataset-aware variable matcher: column typing + synonym dictionary +
+      token overlap scoring → CandidateVariable suggestions with confidence
+      and evidence
+- [x] Research planner: orchestrate parser + matcher + structure detection →
+      ResearchPlan with candidate variables, transformations, models, ambiguities
+- [x] Causal language detection and warning: questions using "cause", "affect",
+      "impact", "lead to" flagged with explicit disambiguation
+- [x] Suggested transformations: log transform recommended for skewed positives
+- [x] Suggested models: rule-based, dataset-structure-aware model ranking
+      (FE/RE/Two-Way FE for panel, OLS/Robust for cross-section)
+- [x] Plan registry with thread-safe in-memory storage
+- [x] `POST /api/plans/generate`, `GET /api/plans/{id}`,
+      `POST /api/plans/{id}/approve`, `GET /api/plans/{id}/export/json`
+- [x] Absorbed variable transparency: Two-Way FE `drop_absorbed` now reports
+      which variables were absorbed, why, and whether the primary IV is affected
+- [x] Frontend: `/datasets/[datasetId]/plan` page with ResearchQuestionForm,
+      ResearchPlanOverview, CandidateVariableCard, AmbiguityPanel,
+      SuggestedModelList, CausalWarningBanner
+- [x] "Research Planning →" button added to home page
+- [x] 156 backend pytest tests passing (115 Phase 1–4 + 41 Phase 5)
 
 ## Phase 6 — Autonomous Econometric Discovery Engine
 

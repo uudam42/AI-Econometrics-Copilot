@@ -172,3 +172,44 @@ export async function getReportHtml(reportId: string): Promise<string> {
   if (!response.ok) await parseErrorOrThrow(response);
   return response.text();
 }
+
+// ─── Planning API ─────────────────────────────────────────────────────────
+
+export async function generatePlan(
+  request: import("@/types/planning").PlanGenerationRequest
+): Promise<import("@/types/planning").ResearchPlan> {
+  const response = await fetch(`${API_BASE_URL}/plans/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getPlan(
+  planId: string
+): Promise<import("@/types/planning").ResearchPlan> {
+  const response = await fetch(`${API_BASE_URL}/plans/${planId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function approvePlan(
+  planId: string,
+  approval: import("@/types/planning").PlanApprovalRequest
+): Promise<import("@/types/planning").PlanApprovalResult> {
+  const response = await fetch(`${API_BASE_URL}/plans/${planId}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(approval),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function exportPlanJson(planId: string): Promise<unknown> {
+  const response = await fetch(`${API_BASE_URL}/plans/${planId}/export/json`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
