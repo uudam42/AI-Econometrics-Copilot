@@ -27,6 +27,9 @@ AI understands and recommends — Python statistical libraries do all real compu
 | **Coefficient stability view** | Compare how the primary IV coefficient behaves across specifications |
 | **Research report generator** | Deterministic narrative sections — no LLM, no fabricated statistics |
 | **Report export** | Markdown, HTML, and JSON artifact with reproducibility metadata |
+| **Research planning** | Type a question in natural language; the system proposes variables, models, and transformations |
+| **Causal language detection** | Detects "cause/affect/impact" and reframes as association with explicit warning |
+| **Absorbed variable transparency** | Two-Way FE reports which variables were absorbed and warns if the primary IV is affected |
 | Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
 | Reproducible export | Complete JSON artifact including software versions |
 
@@ -185,7 +188,7 @@ cd backend
 python -m pytest -q
 ```
 
-Expected: **76 tests passing**.
+Expected: **156 tests passing**.
 
 Frontend type check:
 ```bash
@@ -245,7 +248,7 @@ npm run build
 - No arbitrary formula editor (variables selected through UI)
 - No LaTeX/PDF report export
 - Hausman test uses pseudo-inverse for robustness — may report unavailable for near-singular matrices
-- Two-way fixed effects automatically drops absorbed variables (linearmodels `drop_absorbed=True`)
+- Two-way fixed effects may absorb variables collinear with entity/time dummies (now reported transparently)
 
 ---
 
@@ -298,7 +301,7 @@ The model selection recommendation uses a weighted multi-criteria score:
 | Phase 2 | Variable configuration, data transformations | ✅ Complete |
 | Phase 3 | Regression execution, econometric diagnostics | ✅ Complete |
 | Phase 4 | Multi-model comparison, transparent recommendation, research report | ✅ Complete |
-| Phase 5 | Natural-language research question mapping, AI planning layer | Planned |
+| Phase 5 | Natural-language research planning, absorbed variable transparency | ✅ Complete |
 | Phase 6 | Autonomous discovery engine with bounded search | Future |
 
 ---

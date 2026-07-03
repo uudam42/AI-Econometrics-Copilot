@@ -138,6 +138,7 @@ class PanelRunResult:
     formula: str
     model_metadata: dict
     lm_result: Any  # linearmodels result object
+    absorbed_variables: list[str] | None = None
 
 
 def run_panel(
@@ -202,6 +203,13 @@ def run_panel(
             "and that selected variables have sufficient within-entity variation."
         ) from exc
 
+    # Detect absorbed variables: compare input regressors with estimated params
+    estimated_params = set(result.params.index.tolist())
+    all_input_vars = set(regressors)
+    if needs_const:
+        all_input_vars.add("const")
+    absorbed = sorted(all_input_vars - estimated_params)
+
     coefficients = _extract_coefficients(result, model_type)
     resids, fitted, actual = _get_resids_fitted(result, df_panel, dep_var)
 
@@ -237,6 +245,30 @@ def run_panel(
         ),
     }
 
+    if absorbed:
+        absorbed_reasons = []
+        for var in absorbed:
+            if entity_effects and time_effects:
+                absorbed_reasons.append(
+                    f"'{var}' was absorbed (collinear with entity and/or time fixed effects)"
+                )
+            elif entity_effects:
+                absorbed_reasons.append(
+                    f"'{var}' was absorbed (collinear with entity fixed effects)"
+                )
+            else:
+                absorbed_reasons.append(f"'{var}' was absorbed")
+        metadata["absorbed_variables"] = absorbed
+        metadata["absorbed_warnings"] = absorbed_reasons
+        primary_iv_absorbed = primary_iv in absorbed
+        metadata["primary_iv_absorbed"] = primary_iv_absorbed
+        if primary_iv_absorbed:
+            metadata["absorbed_critical_warning"] = (
+                f"The primary independent variable '{primary_iv}' was absorbed by "
+                "the fixed effects. This means the variable has no within-entity "
+                "variation and its effect cannot be estimated in this specification."
+            )
+
     return PanelRunResult(
         coefficients=coefficients,
         fit=fit,
@@ -246,6 +278,7 @@ def run_panel(
         formula=formula,
         model_metadata=metadata,
         lm_result=result,
+        absorbed_variables=absorbed if absorbed else None,
     )
 
 
