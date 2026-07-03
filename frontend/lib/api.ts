@@ -413,3 +413,21 @@ export async function listProjectPublicationExports(
   if (!response.ok) await parseErrorOrThrow(response);
   return response.json();
 }
+
+export async function getOnboardingStatus(): Promise<
+  import("@/types/onboarding").OnboardingStatus
+> {
+  const response = await fetch(`${API_BASE_URL}/onboarding/status`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function createDemoProject(): Promise<
+  import("@/types/onboarding").DemoProjectResponse
+> {
+  const response = await fetch(`${API_BASE_URL}/onboarding/demo-project`, {
+    method: "POST",
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}

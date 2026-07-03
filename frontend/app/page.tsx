@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UploadPanel } from "@/components/UploadPanel";
 import { DatasetOverviewSection } from "@/components/DatasetOverviewSection";
 import { DataQualitySection } from "@/components/DataQualitySection";
 import { StructureSection } from "@/components/StructureSection";
-import { ApiError, getDatasetProfile } from "@/lib/api";
+import { WelcomeCard } from "@/components/onboarding/WelcomeCard";
+import { ApiError, getDatasetProfile, getOnboardingStatus } from "@/lib/api";
 import type { DatasetOverview, DatasetProfileResponse } from "@/types/dataset";
+import type { OnboardingStatus } from "@/types/onboarding";
 
 export default function Home() {
   const [overview, setOverview] = useState<DatasetOverview | null>(null);
   const [profile, setProfile] = useState<DatasetProfileResponse | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isProfiling, setIsProfiling] = useState(false);
+  const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
+
+  useEffect(() => {
+    getOnboardingStatus()
+      .then(setOnboarding)
+      .catch(() => setOnboarding({ has_projects: false, has_demo: false, sample_data_available: false }));
+  }, []);
 
   async function handleUploaded(next: DatasetOverview) {
     setOverview(next);
@@ -34,6 +43,8 @@ export default function Home() {
       setIsProfiling(false);
     }
   }
+
+  const showWelcome = onboarding && !onboarding.has_projects && !overview;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -61,7 +72,13 @@ export default function Home() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-6 py-8">
-        {!overview && <UploadPanel onUploaded={handleUploaded} />}
+        {showWelcome && (
+          <WelcomeCard
+            sampleDataAvailable={onboarding.sample_data_available}
+          />
+        )}
+
+        {!overview && !showWelcome && <UploadPanel onUploaded={handleUploaded} />}
 
         {overview && (
           <>
