@@ -176,9 +176,47 @@
 - [x] 229 backend pytest tests passing (201 Phase 1–6 + 28 Phase 7)
 - [x] TypeScript type-checks pass, Next.js production build succeeds
 
-## Phase 8 — Publication-Ready Reporting and Advanced Export
+## Phase 8 — Publication-Ready Reporting and Advanced Academic Export ✅ Completed
 
-- [ ] LaTeX / PDF report generation
-- [ ] APA / AER citation formatting
-- [ ] Regression table output (stargazer-style)
-- [ ] Custom report templates
+- [x] Academic regression table generators: single-model, multi-model comparison,
+      coefficient stability, descriptive statistics, variable definitions,
+      diagnostic summary — all with *** / ** / * significance notation and
+      causal language disclaimer
+- [x] Publication-ready figure generators via matplotlib (not seaborn):
+      coefficient plot with 95% CI, residual vs fitted, actual vs predicted,
+      correlation heatmap, coefficient stability chart — PNG output
+- [x] DOCX export via python-docx: genuinely editable Word documents with
+      cover page, Times New Roman, professional table formatting, embedded
+      figures with captions, and causal disclaimer
+- [x] LaTeX export: standalone .tex + tables/ + figures/ + appendix/ +
+      README.md — compiles with pdflatex using booktabs, graphicx, hyperref
+- [x] PDF export: documented placeholder — WeasyPrint requires native
+      Pango/Cairo libraries not reliably available; clear error message
+- [x] Methodology appendix: auto-generated variable selection, model
+      specification, limitations section
+- [x] Reproducibility appendix: dataset SHA-256 checksum, transformation log,
+      model configuration, software versions — all deterministic
+- [x] Publication export orchestration service: coordinates table generators,
+      figure generators, appendix, and format-specific exporters
+- [x] PublicationExportRow persistence in SQLAlchemy with cache + write-through
+- [x] Publication export API endpoints: POST /generate, GET /{id},
+      GET /{id}/download/{format}, GET /{id}/export/json,
+      GET /by-project/{project_id}
+- [x] Timeline event integration: publication_export_created events
+- [x] Frontend: TypeScript types (publication_export.ts), 4 API functions,
+      4 components (PublicationExportForm, ExportDownloadActions,
+      PublicationExportStatus, PublicationExportList), 2 pages
+      (project exports, export detail)
+- [x] "Publication Exports →" link on project detail page
+- [x] Backward compatibility: existing report endpoints unchanged
+- [x] README.md and README.zh-CN.md updated with Phase 8 features
+- [x] 267 backend pytest tests passing (229 Phase 1–7 + 38 Phase 8)
+- [x] TypeScript type-checks pass, Next.js production build succeeds
+
+## Phase 9 — Advanced Econometric Models and Causal Identification Workflows
+
+- [ ] Instrumental variables (2SLS) support
+- [ ] Difference-in-differences estimation
+- [ ] Regression discontinuity design
+- [ ] Synthetic control method
+- [ ] Causal graph specification and validation
