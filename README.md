@@ -33,6 +33,11 @@ AI understands and recommends — Python statistical libraries do all real compu
 | **Exploratory discovery** | Bounded specification search with variable screening, multiple-testing correction (BH/Bonferroni), stability assessment |
 | **Multi-criteria finding scoring** | 6-dimension weighted score: corrected support, stability, direction, data quality, diagnostics, fit |
 | **Finding-to-plan handoff** | Promote any exploratory finding into a theory-driven research plan with one click |
+| **Persistent research workspaces** | SQLite-backed projects that survive server restarts — organize datasets, analyses, and reports under one project |
+| **Timeline tracking** | Chronological activity log for every project action — dataset uploads, analyses, comparisons, reports |
+| **Artifact history** | Browse all artifacts (datasets, analyses, plans, reports, discoveries) linked to a project |
+| **Reproducible bundle export** | Download a ZIP bundle of any project — metadata, artifacts, timeline, and optionally raw data |
+| **Restart recovery** | DataFrames cached in memory, lazily reloaded from disk on restart — no data loss |
 | Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
 | Reproducible export | Complete JSON artifact including software versions |
 
@@ -46,8 +51,13 @@ Upload → Profile → Variable Selection → Transformation → Model Run → R
 ```
 
 ```
+Upload → Profile → Variable Selection → Transformation → Model Run → Results
+       ↘ Project Workspace → Datasets → Analyses → Timeline → Export Bundle
+```
+
+```
 frontend/         Next.js 16 + TypeScript + Tailwind + Recharts
-backend/          FastAPI + Pydantic v2 + pandas + statsmodels + linearmodels
+backend/          FastAPI + Pydantic v2 + SQLAlchemy 2.x + pandas + statsmodels + linearmodels
 sample_data/      World Bank–style synthetic panel (20 countries × 15 years)
 docs/             Architecture, API reference, econometric rules, dev plan
 ```
@@ -68,6 +78,7 @@ docs/             Architecture, API reference, econometric rules, dev plan
 - pandas, numpy, scipy
 - statsmodels (OLS, diagnostics)
 - linearmodels (panel regression)
+- SQLAlchemy 2.x (SQLite persistence)
 - openpyxl (Excel support)
 - pytest, httpx
 
@@ -86,10 +97,11 @@ ai-econometrics-copilot/
 ├── backend/
 │   ├── app/
 │   │   ├── analysis/          # diagnostics.py, model_runner.py, ols_models.py, panel_models.py, model_recommender.py, econometric_rules.py, discovery_*.py
-│   │   ├── api/               # datasets.py, analyses.py
+│   │   ├── api/               # datasets.py, analyses.py, projects.py
 │   │   ├── core/              # config.py, errors.py, logging.py
-│   │   ├── models/            # dataset_registry.py, analysis_registry.py
-│   │   ├── schemas/           # dataset.py, modeling.py, common.py
+│   │   ├── models/            # backward-compatible re-export shims
+│   │   ├── storage/           # database.py, models.py, repositories.py (SQLite + in-memory cache)
+│   │   ├── schemas/           # dataset.py, modeling.py, project.py, common.py
 │   │   └── services/          # column_typing.py, data_profiler.py, dataset_service.py, structure_detector.py, transformation_service.py
 │   └── tests/
 ├── frontend/
@@ -97,13 +109,16 @@ ai-econometrics-copilot/
 │   │   ├── page.tsx                         # Home: upload + profile dashboard
 │   │   ├── datasets/[datasetId]/model/      # Variable selection + model config
 │   │   ├── datasets/[datasetId]/discover/   # Exploratory relationship discovery
-│   │   └── analyses/[analysisId]/           # Results dashboard
+│   │   ├── analyses/[analysisId]/           # Results dashboard
+│   │   ├── projects/                        # Project list, create, detail
+│   │   └── projects/[projectId]/            # Project workspace, datasets, timeline
 │   ├── components/
 │   │   ├── modeling/                        # VariableRoleSelector, TransformationPanel, ModelConfigurationPanel
+│   │   ├── projects/                        # ProjectCard, ProjectForm, ProjectOverview, ProjectTimeline, ArtifactHistoryTable
 │   │   ├── results/                         # CoefficientTable, CoefficientPlot, ResidualPlot, CorrelationHeatmap, DiagnosticsPanel
 │   │   └── ui/                              # card, button, badge, table, select
 │   ├── lib/                                 # api.ts, utils.ts
-│   └── types/                               # dataset.ts, modeling.ts
+│   └── types/                               # dataset.ts, modeling.ts, project.ts
 ├── sample_data/
 │   └── world_bank_panel_sample.xlsx
 ├── docs/
@@ -153,8 +168,12 @@ npm install
 
 ## Environment Variables
 
-**Backend** (optional, defaults shown):
+**Backend** (optional, defaults shown — see `backend/.env.example` for all options):
 ```
+ECOPILOT_DATABASE_URL=sqlite:///./data/ai_econometrics.db
+ECOPILOT_DATA_DIR=data
+ECOPILOT_UPLOAD_DIR=data/uploads
+ECOPILOT_ARTIFACT_DIR=data/artifacts
 ECOPILOT_CORS_ORIGINS=["http://localhost:3000"]
 ECOPILOT_MAX_UPLOAD_SIZE_BYTES=52428800
 ECOPILOT_LOG_LEVEL=INFO
@@ -193,7 +212,7 @@ cd backend
 python -m pytest -q
 ```
 
-Expected: **201 tests passing**.
+Expected: **229 tests passing**.
 
 Frontend type check:
 ```bash
@@ -248,7 +267,7 @@ npm run build
 
 ## Current Limitations
 
-- In-process storage only (no database) — data is lost on server restart
+- Single-user, local SQLite storage — no multi-user or cloud sync
 - No authentication or multi-user isolation
 - No arbitrary formula editor (variables selected through UI)
 - No LaTeX/PDF report export
@@ -308,7 +327,8 @@ The model selection recommendation uses a weighted multi-criteria score:
 | Phase 4 | Multi-model comparison, transparent recommendation, research report | ✅ Complete |
 | Phase 5 | Natural-language research planning, absorbed variable transparency | ✅ Complete |
 | Phase 6 | Constrained exploratory relationship discovery | ✅ Complete |
-| Phase 7 | Causal inference toolkit (IV, DID, RDD) | Future |
+| Phase 7 | Persistent research workspaces and reproducible project storage | ✅ Complete |
+| Phase 8 | Publication-ready reporting and advanced export | Future |
 
 ---
 

@@ -138,9 +138,47 @@
 - [x] 201 backend pytest tests passing (156 Phase 1–5 + 45 Phase 6)
 - [x] TypeScript type-checks pass, Next.js production build succeeds
 
-## Phase 7 — Causal Inference Toolkit
+## Phase 7 — Persistent Research Workspaces and Reproducible Project Storage ✅ Completed
 
-- [ ] Instrumental Variables (2SLS) estimation
-- [ ] Difference-in-Differences (DID) estimator
-- [ ] Regression Discontinuity Design (RDD)
-- [ ] Pre-trend testing and parallel trends diagnostics
+- [x] SQLite persistence via SQLAlchemy 2.x with WAL journal mode
+- [x] Repository pattern: in-memory cache + write-through to SQLite
+- [x] 8 SQLAlchemy table models: ProjectRow, DatasetRow, AnalysisRow,
+      ComparisonRow, PlanRow, ReportRow, DiscoveryRow, TimelineEventRow
+- [x] ProjectRepository: create, get, list_all (exclude archived by default),
+      update, delete (protected + forced), get_timeline, get_artifacts
+- [x] DatasetRepository: create, get (lazy DataFrame reload from disk),
+      exists, list_by_project, update_profile, set_project, clear_cache
+- [x] AnalysisRepository, ComparisonRepository, PlanRepository,
+      ReportRepository, DiscoveryRepository — all with cache + SQLite
+- [x] SHA-256 checksums for uploaded dataset files
+- [x] Timeline events auto-recorded on artifact creation
+- [x] Project domain model: draft → active → archived lifecycle
+- [x] Project API endpoints: POST/GET/PATCH/DELETE /api/projects,
+      GET timeline, GET artifacts, POST datasets/upload,
+      GET export/json, GET export/bundle (ZIP with optional raw data)
+- [x] Backward compatibility: old registry modules re-export from repositories,
+      existing endpoints work without project_id
+- [x] FastAPI lifespan context manager for DB initialization on startup
+- [x] Thread-safe repositories with threading.Lock for cache access
+- [x] Environment configuration: ECOPILOT_DATABASE_URL, DATA_DIR,
+      UPLOAD_DIR, ARTIFACT_DIR — with `.env.example`
+- [x] Autouse pytest fixture: temp SQLite database per test, reset engine,
+      clear all caches
+- [x] Frontend: TypeScript types (project.ts), 7 components
+      (ProjectCard, ProjectForm, ProjectOverview, ProjectTimeline,
+      ArtifactHistoryTable, ProjectDatasetList, ProjectExportActions,
+      ProjectStatusBadge)
+- [x] Frontend: 5 pages (projects list, new project, project detail,
+      project datasets, project timeline)
+- [x] Frontend: 12 API functions added to api.ts
+- [x] "Projects" navigation link added to home page
+- [x] README.md and README.zh-CN.md updated with Phase 7 features
+- [x] 229 backend pytest tests passing (201 Phase 1–6 + 28 Phase 7)
+- [x] TypeScript type-checks pass, Next.js production build succeeds
+
+## Phase 8 — Publication-Ready Reporting and Advanced Export
+
+- [ ] LaTeX / PDF report generation
+- [ ] APA / AER citation formatting
+- [ ] Regression table output (stargazer-style)
+- [ ] Custom report templates
