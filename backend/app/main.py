@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import analyses, comparisons, datasets, planning, reports
+from app.api import analyses, comparisons, datasets, discovery, planning, reports
 from app.core.config import settings
 from app.core.errors import AppError, app_error_handler, unhandled_exception_handler
 from app.core.logging import configure_logging
@@ -33,6 +33,7 @@ app.include_router(analyses.router, prefix=settings.api_prefix)
 app.include_router(comparisons.router, prefix=settings.api_prefix)
 app.include_router(reports.router, prefix=settings.api_prefix)
 app.include_router(planning.router, prefix=settings.api_prefix)
+app.include_router(discovery.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["meta"])

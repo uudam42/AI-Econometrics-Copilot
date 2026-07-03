@@ -30,6 +30,9 @@ AI understands and recommends — Python statistical libraries do all real compu
 | **Research planning** | Type a question in natural language; the system proposes variables, models, and transformations |
 | **Causal language detection** | Detects "cause/affect/impact" and reframes as association with explicit warning |
 | **Absorbed variable transparency** | Two-Way FE reports which variables were absorbed and warns if the primary IV is affected |
+| **Exploratory discovery** | Bounded specification search with variable screening, multiple-testing correction (BH/Bonferroni), stability assessment |
+| **Multi-criteria finding scoring** | 6-dimension weighted score: corrected support, stability, direction, data quality, diagnostics, fit |
+| **Finding-to-plan handoff** | Promote any exploratory finding into a theory-driven research plan with one click |
 | Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
 | Reproducible export | Complete JSON artifact including software versions |
 
@@ -39,6 +42,7 @@ AI understands and recommends — Python statistical libraries do all real compu
 
 ```
 Upload → Profile → Variable Selection → Transformation → Model Run → Results
+                 ↘ Discovery → Screening → Specs → Correction → Findings → Plan
 ```
 
 ```
@@ -81,7 +85,7 @@ docs/             Architecture, API reference, econometric rules, dev plan
 ai-econometrics-copilot/
 ├── backend/
 │   ├── app/
-│   │   ├── analysis/          # diagnostics.py, model_runner.py, ols_models.py, panel_models.py, model_recommender.py, econometric_rules.py
+│   │   ├── analysis/          # diagnostics.py, model_runner.py, ols_models.py, panel_models.py, model_recommender.py, econometric_rules.py, discovery_*.py
 │   │   ├── api/               # datasets.py, analyses.py
 │   │   ├── core/              # config.py, errors.py, logging.py
 │   │   ├── models/            # dataset_registry.py, analysis_registry.py
@@ -92,6 +96,7 @@ ai-econometrics-copilot/
 │   ├── app/
 │   │   ├── page.tsx                         # Home: upload + profile dashboard
 │   │   ├── datasets/[datasetId]/model/      # Variable selection + model config
+│   │   ├── datasets/[datasetId]/discover/   # Exploratory relationship discovery
 │   │   └── analyses/[analysisId]/           # Results dashboard
 │   ├── components/
 │   │   ├── modeling/                        # VariableRoleSelector, TransformationPanel, ModelConfigurationPanel
@@ -188,7 +193,7 @@ cd backend
 python -m pytest -q
 ```
 
-Expected: **156 tests passing**.
+Expected: **201 tests passing**.
 
 Frontend type check:
 ```bash
@@ -302,7 +307,8 @@ The model selection recommendation uses a weighted multi-criteria score:
 | Phase 3 | Regression execution, econometric diagnostics | ✅ Complete |
 | Phase 4 | Multi-model comparison, transparent recommendation, research report | ✅ Complete |
 | Phase 5 | Natural-language research planning, absorbed variable transparency | ✅ Complete |
-| Phase 6 | Autonomous discovery engine with bounded search | Future |
+| Phase 6 | Constrained exploratory relationship discovery | ✅ Complete |
+| Phase 7 | Causal inference toolkit (IV, DID, RDD) | Future |
 
 ---
 

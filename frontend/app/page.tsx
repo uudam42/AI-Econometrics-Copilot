@@ -73,6 +73,9 @@ export default function Home() {
                 <StructureSection structure={profile.structure} />
                 <DataQualitySection quality={profile.quality} />
                 <div className="flex justify-end gap-3">
+                  <Link href={`/datasets/${overview.dataset_id}/discover`}>
+                    <Button variant="secondary">Explore Relationships →</Button>
+                  </Link>
                   <Link href={`/datasets/${overview.dataset_id}/plan`}>
                     <Button variant="secondary">Research Planning →</Button>
                   </Link>

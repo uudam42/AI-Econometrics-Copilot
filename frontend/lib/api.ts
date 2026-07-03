@@ -213,3 +213,51 @@ export async function exportPlanJson(planId: string): Promise<unknown> {
   if (!response.ok) await parseErrorOrThrow(response);
   return response.json();
 }
+
+// ─── Discovery API ────────────────────────────────────────────────────────
+
+export async function runDiscovery(
+  config: import("@/types/discovery").DiscoveryConfig
+): Promise<import("@/types/discovery").DiscoveryResult> {
+  const response = await fetch(`${API_BASE_URL}/discovery/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(config),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getDiscovery(
+  discoveryId: string
+): Promise<import("@/types/discovery").DiscoveryResult> {
+  const response = await fetch(`${API_BASE_URL}/discovery/${discoveryId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getDiscoveryFindings(
+  discoveryId: string
+): Promise<import("@/types/discovery").ExploratoryFinding[]> {
+  const response = await fetch(`${API_BASE_URL}/discovery/${discoveryId}/findings`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function exportDiscoveryJson(discoveryId: string): Promise<unknown> {
+  const response = await fetch(`${API_BASE_URL}/discovery/${discoveryId}/export/json`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function createPlanFromFinding(
+  discoveryId: string,
+  findingId: string
+): Promise<import("@/types/planning").ResearchPlan> {
+  const response = await fetch(
+    `${API_BASE_URL}/discovery/${discoveryId}/findings/${findingId}/create-plan`,
+    { method: "POST" }
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
