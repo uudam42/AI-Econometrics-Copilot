@@ -39,6 +39,7 @@ def _temp_db(tmp_path):
         plan_repository,
         report_repository,
         discovery_repository,
+        publication_export_repository,
     )
     dataset_repository._cache.clear()
     analysis_repository._cache.clear()
@@ -46,6 +47,7 @@ def _temp_db(tmp_path):
     plan_repository._cache.clear()
     report_repository._cache.clear()
     discovery_repository._cache.clear()
+    publication_export_repository._cache.clear()
 
     yield
 
