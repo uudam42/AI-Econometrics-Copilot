@@ -52,6 +52,21 @@ class ModelExecutionError(AppError):
     error_code = "model_execution_error"
 
 
+class ProjectNotFoundError(AppError):
+    status_code = 404
+    error_code = "project_not_found"
+
+
+class ProjectDeletionError(AppError):
+    status_code = 409
+    error_code = "project_has_artifacts"
+
+
+class StorageError(AppError):
+    status_code = 500
+    error_code = "storage_error"
+
+
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,

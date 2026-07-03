@@ -7,9 +7,7 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.analysis.model_runner import run_analysis
-from app.core.errors import ModelNotFoundError
-from app.models.analysis_registry import analysis_registry
-from app.models.dataset_registry import registry as dataset_registry
+from app.storage.repositories import analysis_repository, dataset_repository
 from app.schemas.modeling import (
     AnalysisConfigurationRequest,
     AnalysisExportArtifact,
@@ -25,44 +23,47 @@ async def run_analysis_endpoint(
     config: AnalysisConfigurationRequest,
 ) -> AnalysisResult:
     """Execute a full analysis: transform → model → diagnostics → store."""
-    record = dataset_registry.get(config.dataset_id)
+    record = dataset_repository.get(config.dataset_id)
     result, diagnostics = run_analysis(config, record)
 
-    ar = analysis_registry.create(
+    project_id = getattr(record, "project_id", None)
+
+    ar = analysis_repository.create(
         dataset_id=record.dataset_id,
         dataset_filename=record.filename,
         config=config,
         result=result,
         diagnostics=diagnostics,
         transformation_log=result.transformation_log,
+        project_id=project_id,
     )
 
-    # Sync the stable registry ID into the result object
     result.analysis_id = ar.analysis_id
     diagnostics.analysis_id = ar.analysis_id
-    # Update the stored copies too
     ar.result = result
     ar.diagnostics = diagnostics
+
+    analysis_repository.update_result(ar.analysis_id, result, diagnostics)
 
     return result
 
 
 @router.get("/{analysis_id}", response_model=AnalysisResult)
 async def get_analysis(analysis_id: str) -> AnalysisResult:
-    record = analysis_registry.get(analysis_id)
+    record = analysis_repository.get(analysis_id)
     return record.result
 
 
 @router.get("/{analysis_id}/diagnostics", response_model=ModelDiagnosticsResponse)
 async def get_analysis_diagnostics(analysis_id: str) -> ModelDiagnosticsResponse:
-    record = analysis_registry.get(analysis_id)
+    record = analysis_repository.get(analysis_id)
     return record.diagnostics
 
 
 @router.get("/{analysis_id}/report", response_model=dict)
 async def get_analysis_report(analysis_id: str) -> dict:
     """Return a structured narrative report (rule-generated, no LLM)."""
-    record = analysis_registry.get(analysis_id)
+    record = analysis_repository.get(analysis_id)
     result = record.result
     diagnostics = record.diagnostics
 
@@ -97,12 +98,11 @@ async def get_analysis_report(analysis_id: str) -> dict:
 @router.get("/{analysis_id}/export/json", response_model=AnalysisExportArtifact)
 async def export_analysis_json(analysis_id: str) -> AnalysisExportArtifact:
     """Export a complete reproducible analysis artifact as JSON."""
-    record = analysis_registry.get(analysis_id)
+    record = analysis_repository.get(analysis_id)
     result = record.result
     diagnostics = record.diagnostics
     config = record.config
 
-    # Collect software versions
     versions: dict[str, str] = {}
     for pkg in ("pandas", "numpy", "statsmodels", "scipy", "linearmodels"):
         try:

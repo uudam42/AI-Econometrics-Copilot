@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, File, UploadFile
 
-from app.models.dataset_registry import registry
+from app.storage.repositories import dataset_repository
 from app.schemas.dataset import (
     DatasetOverviewResponse,
     DatasetProfileResponse,
@@ -14,7 +14,6 @@ from app.services.column_typing import infer_all_column_types
 from app.services.data_profiler import profile_dataset
 from app.services.dataset_service import build_preview, ingest_upload
 from app.services.structure_detector import detect_structure
-from app.services.transformation_service import apply_transformations
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 
@@ -41,7 +40,7 @@ async def upload_dataset(file: UploadFile = File(...)) -> DatasetOverviewRespons
 
 @router.get("/{dataset_id}", response_model=DatasetSummary)
 async def get_dataset(dataset_id: str) -> DatasetSummary:
-    record = registry.get(dataset_id)
+    record = dataset_repository.get(dataset_id)
     df = record.dataframe
     return DatasetSummary(
         dataset_id=record.dataset_id,
@@ -55,13 +54,13 @@ async def get_dataset(dataset_id: str) -> DatasetSummary:
 
 @router.get("/{dataset_id}/overview", response_model=DatasetOverviewResponse)
 async def get_dataset_overview(dataset_id: str) -> DatasetOverviewResponse:
-    record = registry.get(dataset_id)
+    record = dataset_repository.get(dataset_id)
     return _build_overview(record)
 
 
 @router.get("/{dataset_id}/profile", response_model=DatasetProfileResponse)
 async def get_dataset_profile(dataset_id: str) -> DatasetProfileResponse:
-    record = registry.get(dataset_id)
+    record = dataset_repository.get(dataset_id)
     df = record.dataframe
     quality = profile_dataset(dataset_id, df)
     structure = detect_structure(df)
@@ -71,9 +70,10 @@ async def get_dataset_profile(dataset_id: str) -> DatasetProfileResponse:
 @router.post("/{dataset_id}/transform", response_model=TransformResult)
 async def transform_dataset(dataset_id: str, config: AnalysisConfigurationRequest) -> TransformResult:
     """Apply transformations to a copy of the dataset and persist the processed copy."""
-    record = registry.get(dataset_id)
+    record = dataset_repository.get(dataset_id)
     ops = [t.model_dump() for t in config.transformations]
     rows_before = len(record.dataframe)
+    from app.services.transformation_service import apply_transformations
     processed_df, log = apply_transformations(record.dataframe, ops)
     record.processed_dataframe = processed_df
     record.transformation_log = [entry.model_dump() for entry in log]

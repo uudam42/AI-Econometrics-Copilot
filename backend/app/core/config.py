@@ -13,7 +13,10 @@ class Settings(BaseSettings):
     api_prefix: str = "/api"
     cors_origins: list[str] = ["http://localhost:3000"]
 
-    upload_dir: Path = Path("storage/uploads")
+    database_url: str = "sqlite:///./data/ai_econometrics.db"
+    data_dir: Path = Path("data")
+    upload_dir: Path = Path("data/uploads")
+    artifact_dir: Path = Path("data/artifacts")
     max_upload_size_bytes: int = 50 * 1024 * 1024  # 50 MB
     allowed_extensions: tuple[str, ...] = (".csv", ".xlsx", ".xls")
 
