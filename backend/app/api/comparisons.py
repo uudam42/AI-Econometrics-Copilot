@@ -6,9 +6,7 @@ import importlib
 from fastapi import APIRouter
 
 from app.analysis.model_comparison import run_comparison
-from app.core.errors import ModelNotFoundError
-from app.models.comparison_registry import comparison_registry
-from app.models.dataset_registry import registry as dataset_registry
+from app.storage.repositories import comparison_repository, dataset_repository
 from app.schemas.comparison import (
     ComparisonExportArtifact,
     ComparisonRequest,
@@ -21,26 +19,30 @@ router = APIRouter(prefix="/comparisons", tags=["comparisons"])
 @router.post("/run", response_model=ComparisonResult)
 async def run_comparison_endpoint(request: ComparisonRequest) -> ComparisonResult:
     """Run multiple models on the same dataset and variable selection."""
-    record = dataset_registry.get(request.dataset_id)
+    record = dataset_repository.get(request.dataset_id)
     result = run_comparison(request, record)
-    comparison_registry.create(
+
+    project_id = getattr(record, "project_id", None)
+
+    comparison_repository.create(
         dataset_id=record.dataset_id,
         request=request,
         result=result,
+        project_id=project_id,
     )
     return result
 
 
 @router.get("/{comparison_id}", response_model=ComparisonResult)
 async def get_comparison(comparison_id: str) -> ComparisonResult:
-    record = comparison_registry.get(comparison_id)
+    record = comparison_repository.get(comparison_id)
     return record.result
 
 
 @router.get("/{comparison_id}/export/json", response_model=ComparisonExportArtifact)
 async def export_comparison_json(comparison_id: str) -> ComparisonExportArtifact:
     """Export a complete reproducible comparison artifact."""
-    rec = comparison_registry.get(comparison_id)
+    rec = comparison_repository.get(comparison_id)
     result = rec.result
     request = rec.request
 

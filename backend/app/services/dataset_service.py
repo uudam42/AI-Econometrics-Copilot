@@ -9,7 +9,7 @@ import pandas as pd
 from app.core.config import settings
 from app.core.errors import UnsupportedFileTypeError, ValidationAppError, FileTooLargeError
 from app.core.logging import get_logger
-from app.models.dataset_registry import DatasetRecord, registry
+from app.storage.repositories import DatasetRecord, dataset_repository
 
 logger = get_logger(__name__)
 
@@ -46,7 +46,11 @@ def _parse_dataframe(path: Path, suffix: str) -> pd.DataFrame:
     return df
 
 
-def ingest_upload(filename: str, content: bytes) -> DatasetRecord:
+def ingest_upload(
+    filename: str,
+    content: bytes,
+    project_id: str | None = None,
+) -> DatasetRecord:
     """Validate, persist, and register an uploaded CSV/Excel file."""
     if not filename:
         raise ValidationAppError("Uploaded file is missing a filename.")
@@ -68,7 +72,12 @@ def ingest_upload(filename: str, content: bytes) -> DatasetRecord:
 
     df = _parse_dataframe(stored_path, suffix)
 
-    record = registry.create(filename=filename, original_path=stored_path, dataframe=df)
+    record = dataset_repository.create(
+        filename=filename,
+        original_path=stored_path,
+        dataframe=df,
+        project_id=project_id,
+    )
     logger.info(
         "Ingested dataset %s (%s): %d rows x %d columns",
         record.dataset_id,
@@ -82,5 +91,4 @@ def ingest_upload(filename: str, content: bytes) -> DatasetRecord:
 def build_preview(df: pd.DataFrame, n_rows: int | None = None) -> list[dict]:
     n = n_rows or settings.preview_row_count
     preview_df = df.head(n)
-    # Replace non-JSON-serializable values (NaN, NaT, numpy types) safely.
     return preview_df.astype(object).where(preview_df.notna(), None).to_dict(orient="records")

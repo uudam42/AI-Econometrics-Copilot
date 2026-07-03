@@ -261,3 +261,108 @@ export async function createPlanFromFinding(
   if (!response.ok) await parseErrorOrThrow(response);
   return response.json();
 }
+
+// ─── Projects API ────────────────────────────────────────────────────────
+
+export async function createProject(
+  req: import("@/types/project").ProjectCreateRequest
+): Promise<import("@/types/project").ProjectResponse> {
+  const response = await fetch(`${API_BASE_URL}/projects`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function listProjects(
+  includeArchived = false
+): Promise<import("@/types/project").ProjectResponse[]> {
+  const qs = includeArchived ? "?include_archived=true" : "";
+  const response = await fetch(`${API_BASE_URL}/projects${qs}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getProject(
+  projectId: string
+): Promise<import("@/types/project").ProjectResponse> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function updateProject(
+  projectId: string,
+  req: import("@/types/project").ProjectUpdateRequest
+): Promise<import("@/types/project").ProjectResponse> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function deleteProject(
+  projectId: string,
+  force = false
+): Promise<void> {
+  const qs = force ? "?force=true" : "";
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}${qs}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+}
+
+export async function getProjectTimeline(
+  projectId: string
+): Promise<import("@/types/project").TimelineEvent[]> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}/timeline`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getProjectArtifacts(
+  projectId: string
+): Promise<import("@/types/project").ProjectArtifacts> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}/artifacts`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function uploadDatasetToProject(
+  projectId: string,
+  file: File
+): Promise<DatasetOverview> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch(
+    `${API_BASE_URL}/projects/${projectId}/datasets/upload`,
+    { method: "POST", body: formData }
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function exportProjectJson(
+  projectId: string
+): Promise<import("@/types/project").ProjectExport> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}/export/json`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function downloadProjectBundle(
+  projectId: string,
+  includeRawData = false
+): Promise<Blob> {
+  const qs = includeRawData ? "?include_raw_data=true" : "";
+  const response = await fetch(
+    `${API_BASE_URL}/projects/${projectId}/export/bundle${qs}`
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.blob();
+}

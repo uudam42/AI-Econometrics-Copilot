@@ -47,11 +47,16 @@ export default function Home() {
               Explainable, reproducible econometric analysis for economic research
             </p>
           </div>
-          {overview && (
-            <Button variant="secondary" onClick={() => setOverview(null)}>
-              New dataset
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <Link href="/projects">
+              <Button variant="ghost">Projects</Button>
+            </Link>
+            {overview && (
+              <Button variant="secondary" onClick={() => setOverview(null)}>
+                New dataset
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

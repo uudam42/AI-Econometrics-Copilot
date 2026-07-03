@@ -6,8 +6,7 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.analysis.research_planner import generate_plan
-from app.models.dataset_registry import registry as dataset_registry
-from app.models.plan_registry import plan_registry
+from app.storage.repositories import dataset_repository, plan_repository
 from app.schemas.planning import (
     PlanApprovalRequest,
     PlanApprovalResult,
@@ -21,7 +20,7 @@ router = APIRouter(prefix="/plans", tags=["plans"])
 
 @router.post("/generate", response_model=ResearchPlan)
 async def generate_plan_endpoint(req: PlanGenerationRequest) -> ResearchPlan:
-    record = dataset_registry.get(req.dataset_id)
+    record = dataset_repository.get(req.dataset_id)
     df = record.processed_dataframe if record.processed_dataframe is not None else record.dataframe
     structure = detect_structure(df)
 
@@ -35,20 +34,21 @@ async def generate_plan_endpoint(req: PlanGenerationRequest) -> ResearchPlan:
         preferred_primary_iv=req.preferred_primary_independent_variable,
     )
 
-    plan_registry.create(plan, dataset_id=req.dataset_id)
+    project_id = getattr(record, "project_id", None)
+    plan_repository.create(plan, dataset_id=req.dataset_id, project_id=project_id)
     return plan
 
 
 @router.get("/{plan_id}", response_model=ResearchPlan)
 async def get_plan(plan_id: str) -> ResearchPlan:
-    record = plan_registry.get(plan_id)
+    record = plan_repository.get(plan_id)
     return record.plan
 
 
 @router.post("/{plan_id}/approve", response_model=PlanApprovalResult)
 async def approve_plan(plan_id: str, approval: PlanApprovalRequest) -> PlanApprovalResult:
-    pr = plan_registry.get(plan_id)
-    plan_registry.mark_approved(plan_id)
+    pr = plan_repository.get(plan_id)
+    plan_repository.mark_approved(plan_id)
 
     variable_selection: dict[str, Any] = {
         "dependent_variable": approval.dependent_variable,
@@ -72,7 +72,7 @@ async def approve_plan(plan_id: str, approval: PlanApprovalRequest) -> PlanAppro
 
 @router.get("/{plan_id}/export/json")
 async def export_plan_json(plan_id: str) -> dict:
-    record = plan_registry.get(plan_id)
+    record = plan_repository.get(plan_id)
     plan = record.plan
     return {
         "plan_id": plan.plan_id,
