@@ -102,11 +102,45 @@
 - [x] "Research Planning →" button added to home page
 - [x] 156 backend pytest tests passing (115 Phase 1–4 + 41 Phase 5)
 
-## Phase 6 — Autonomous Econometric Discovery Engine
+## Phase 6 — Constrained Exploratory Relationship Discovery ✅ Completed
 
-- [ ] Implement `discovery_engine.py`: bounded candidate DV discovery,
-      plausible IV/control filtering, limited candidate model generation,
-      multiple-testing correction
-- [ ] Every finding labeled `Exploratory finding / Not causal evidence /
-      Requires theory-driven validation`
-- [ ] Explicitly no unconstrained/exhaustive search over all variable combinations
+- [x] Two discovery modes: Guided (user specifies outcome) and Open (system selects)
+- [x] Variable eligibility screening: entity/time/ID exclusion, constant detection,
+      missing rate, near-duplicate detection, quality scoring
+- [x] Bounded specification generation: bivariate OLS, controlled robust OLS,
+      log-DV variant, panel FE, two-way FE — at most 5 spec types per predictor
+- [x] Configurable hard limits: max 30 specs (capped at 100), max 5 outcomes,
+      max 10 predictors/outcome, max 4 controls/model
+- [x] Statistical execution: OLS, Robust OLS (HC1), PanelOLS (entity FE),
+      PanelOLS (two-way FE) with absorbed variable rejection
+- [x] Multiple-testing correction: Benjamini-Hochberg FDR (step-up procedure),
+      Bonferroni, or no correction (with explicit warning)
+- [x] Stability assessment: direction consistency, significance consistency,
+      coefficient range, 4-level stability label
+- [x] Multi-criteria weighted scoring (6 dimensions): corrected support (25%),
+      stability (20%), direction consistency (15%), data quality (15%),
+      diagnostics (15%), model fit (10%)
+- [x] Support levels: strong (≥70), moderate (≥50), weak (≥30),
+      insufficient, not suitable
+- [x] Every finding labeled: "Exploratory Finding / Not Causal Evidence /
+      Requires Theory-Driven Validation"
+- [x] Finding-to-plan handoff: any exploratory finding can be promoted to a
+      theory-driven research plan via the existing planning pipeline
+- [x] Discovery registry with thread-safe in-memory storage
+- [x] `POST /api/discovery/run`, `GET /api/discovery/{id}`,
+      `GET /api/discovery/{id}/findings`, `GET /api/discovery/{id}/export/json`,
+      `POST /api/discovery/{id}/findings/{fid}/create-plan`
+- [x] Frontend: `/datasets/[datasetId]/discover` page with
+      DiscoveryConfigurationPanel, EligibilitySummary, ExploratoryFindingsTable,
+      FindingScoreCard, MultipleTestingPanel, StabilityPanel, FindingWarnings,
+      InvestigateFindingButton
+- [x] "Explore Relationships →" button added to home page
+- [x] 201 backend pytest tests passing (156 Phase 1–5 + 45 Phase 6)
+- [x] TypeScript type-checks pass, Next.js production build succeeds
+
+## Phase 7 — Causal Inference Toolkit
+
+- [ ] Instrumental Variables (2SLS) estimation
+- [ ] Difference-in-Differences (DID) estimator
+- [ ] Regression Discontinuity Design (RDD)
+- [ ] Pre-trend testing and parallel trends diagnostics
