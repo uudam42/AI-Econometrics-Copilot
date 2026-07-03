@@ -22,7 +22,11 @@ AI understands and recommends — Python statistical libraries do all real compu
 | Panel regression | Pooled OLS, Fixed Effects, Random Effects, Two-Way FE via `linearmodels` |
 | Clustered SE | Clustered by entity for panel models |
 | Diagnostics | VIF, Breusch-Pagan, Jarque-Bera, Durbin-Watson, Hausman test |
-| Model recommendation | Rule-driven suggestions (no LLM) |
+| **Multi-model comparison** | Run up to 6 models on the same variables; side-by-side fit metrics and diagnostics |
+| **Transparent recommendation** | Multi-criteria scoring (structure, Hausman, heteroskedasticity, parsimony, fit) |
+| **Coefficient stability view** | Compare how the primary IV coefficient behaves across specifications |
+| **Research report generator** | Deterministic narrative sections — no LLM, no fabricated statistics |
+| **Report export** | Markdown, HTML, and JSON artifact with reproducibility metadata |
 | Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
 | Reproducible export | Complete JSON artifact including software versions |
 
@@ -259,11 +263,43 @@ Export via `GET /api/analyses/{id}/export/json`.
 
 ---
 
+## Supported Models (Comparison)
+
+| Model | Library | Use Case |
+|---|---|---|
+| OLS | statsmodels | Cross-sectional / baseline |
+| Robust OLS (HC1) | statsmodels | Heteroskedastic errors |
+| Pooled OLS | linearmodels | Panel data, ignoring panel structure |
+| Fixed Effects | linearmodels | Time-invariant unobserved heterogeneity |
+| Random Effects | linearmodels | Uncorrelated entity effects |
+| Two-Way Fixed Effects | linearmodels | Entity + time effects |
+
+## Recommendation Scoring Criteria
+
+The model selection recommendation uses a weighted multi-criteria score:
+
+| Criterion | Weight |
+|---|---|
+| Structural Compatibility | 25% |
+| Hausman Test Guidance | 20% |
+| Heteroskedasticity Robustness | 15% |
+| Model Fit | 15% |
+| Parsimony | 10% |
+| Sample Size Adequacy | 10% |
+| Estimation Success | 5% |
+
+---
+
 ## Roadmap
 
-- **Phase 4:** Rule-based narrative report generation, model comparison table
-- **Phase 5:** AI planning layer — semantic variable role suggestion, candidate model proposals
-- **Phase 6:** Autonomous discovery engine with bounded search and multiple-testing correction
+| Phase | Feature | Status |
+|---|---|---|
+| Phase 1 | Data upload, profiling, structure detection | ✅ Complete |
+| Phase 2 | Variable configuration, data transformations | ✅ Complete |
+| Phase 3 | Regression execution, econometric diagnostics | ✅ Complete |
+| Phase 4 | Multi-model comparison, transparent recommendation, research report | ✅ Complete |
+| Phase 5 | Natural-language research question mapping, AI planning layer | Planned |
+| Phase 6 | Autonomous discovery engine with bounded search | Future |
 
 ---
 

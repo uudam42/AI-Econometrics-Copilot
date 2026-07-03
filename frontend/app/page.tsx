@@ -72,7 +72,10 @@ export default function Home() {
               <>
                 <StructureSection structure={profile.structure} />
                 <DataQualitySection quality={profile.quality} />
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-3">
+                  <Link href={`/datasets/${overview.dataset_id}/compare`}>
+                    <Button variant="secondary">Compare Models →</Button>
+                  </Link>
                   <Link href={`/datasets/${overview.dataset_id}/model`}>
                     <Button>Configure &amp; Run Model →</Button>
                   </Link>
