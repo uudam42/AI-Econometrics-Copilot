@@ -8,9 +8,22 @@ import type {
   AnalysisResult,
   ModelDiagnosticsResponse,
 } from "@/types/modeling";
+import { getApiBaseUrl, getApiBaseUrlSync } from "@/lib/api-base";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
+let _resolvedBaseUrl: string | null = null;
+
+async function resolveBaseUrl(): Promise<string> {
+  if (!_resolvedBaseUrl) {
+    _resolvedBaseUrl = await getApiBaseUrl();
+  }
+  return _resolvedBaseUrl;
+}
+
+function getBaseUrl(): string {
+  return _resolvedBaseUrl ?? getApiBaseUrlSync();
+}
+
+const API_BASE_URL = getApiBaseUrlSync();
 
 export class ApiError extends Error {
   code: string;
@@ -430,4 +443,8 @@ export async function createDemoProject(): Promise<
   });
   if (!response.ok) await parseErrorOrThrow(response);
   return response.json();
+}
+
+export async function initializeApiBaseUrl(): Promise<void> {
+  _resolvedBaseUrl = await getApiBaseUrl();
 }
