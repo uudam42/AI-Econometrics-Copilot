@@ -1,0 +1,106 @@
+name: Build Windows Desktop
+
+on:
+  push:
+    branches: [feature/standalone-windows-desktop]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            desktop/src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}
+
+      - name: Cache npm modules
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m venv .venv
+          .venv\Scripts\activate
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Package backend sidecar
+        run: |
+          cd backend
+          .venv\Scripts\activate
+          pyinstaller ai-econometrics-backend.spec --distpath ..\desktop\src-tauri\binaries --workpath build -y
+
+      - name: Verify backend sidecar
+        run: |
+          if (!(Test-Path "desktop\src-tauri\binaries\ai-econometrics-backend.exe")) {
+            Write-Error "Backend sidecar not found"
+            exit 1
+          }
+          Write-Host "Backend sidecar built successfully"
+        shell: pwsh
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build static frontend
+        run: |
+          cd frontend
+          $env:NEXT_PUBLIC_BUILD_TARGET = "desktop"
+          npm run build:static
+        shell: pwsh
+
+      - name: Verify frontend export
+        run: |
+          if (!(Test-Path "frontend\out\index.html")) {
+            Write-Error "Frontend static export not found"
+            exit 1
+          }
+          Write-Host "Frontend exported successfully"
+        shell: pwsh
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+
+      - name: Build Tauri installer
+        run: |
+          cd desktop\src-tauri
+          cargo tauri build
+
+      - name: Upload MSI installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msi-installer
+          path: desktop/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: warn
+
+      - name: Upload NSIS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-nsis-installer
+          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: warn
