@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/projects/ProjectCard";
-import { listProjects } from "@/lib/api";
+import { createDemoProject, listProjects } from "@/lib/api";
 import type { ProjectResponse } from "@/types/project";
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [creatingDemo, setCreatingDemo] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -18,6 +21,16 @@ export default function ProjectsPage() {
       .then(setProjects)
       .finally(() => setLoading(false));
   }, [showArchived]);
+
+  async function handleStartDemo() {
+    setCreatingDemo(true);
+    try {
+      const result = await createDemoProject();
+      router.push(`/projects/${result.project_id}`);
+    } catch {
+      setCreatingDemo(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -64,12 +77,19 @@ export default function ProjectsPage() {
           </p>
         ) : projects.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="mb-4 text-sm text-muted">
-              No projects yet. Create one to start organizing your research.
+            <p className="mb-2 text-sm font-medium">No projects yet</p>
+            <p className="mb-6 text-sm text-muted max-w-md mx-auto">
+              Create a new project to start organizing your research, or try the
+              sample dataset to explore the platform.
             </p>
-            <Link href="/projects/new">
-              <Button>Create First Project</Button>
-            </Link>
+            <div className="flex justify-center gap-3">
+              <Button onClick={handleStartDemo} disabled={creatingDemo}>
+                {creatingDemo ? "Creating..." : "Try Sample Dataset"}
+              </Button>
+              <Link href="/projects/new">
+                <Button variant="secondary">Create New Project</Button>
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

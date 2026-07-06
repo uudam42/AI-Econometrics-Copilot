@@ -4,9 +4,16 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - ECOPILOT_DATABASE_URL=sqlite:///./data/ai_econometrics.db
+      - ECOPILOT_DATA_DIR=data
+      - ECOPILOT_UPLOAD_DIR=data/uploads
+      - ECOPILOT_ARTIFACT_DIR=data/artifacts
       - ECOPILOT_CORS_ORIGINS=["http://localhost:3000"]
+      - ECOPILOT_LOG_LEVEL=INFO
     volumes:
-      - backend_storage:/app/storage
+      - ai_econometrics_data:/app/data
+      - ./sample_data:/app/sample_data:ro
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -15,7 +22,9 @@ services:
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  backend_storage:
+  ai_econometrics_data:

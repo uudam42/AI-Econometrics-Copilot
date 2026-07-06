@@ -213,7 +213,34 @@
 - [x] 267 backend pytest tests passing (229 Phase 1–7 + 38 Phase 8)
 - [x] TypeScript type-checks pass, Next.js production build succeeds
 
-## Phase 9 — Advanced Econometric Models and Causal Identification Workflows
+## Phase 9 — Onboarding, One-Click Startup, and Documentation (In Progress)
+
+- [x] Docker one-command startup: docker-compose.yml with named volumes,
+      health checks, CORS and env configuration, .dockerignore files
+- [x] Backend and frontend Dockerfiles with health checks
+- [x] Local startup scripts: start-local.sh, stop-local.sh, reset-local-data.sh
+      (bash) + start-local.ps1, stop-local.ps1, reset-local-data.ps1 (PowerShell)
+- [x] Dependency detection (Python 3.10+, Node 18+) with smart install caching
+- [x] Makefile with start, stop, test, docker-up, docker-down targets
+- [x] Demo project endpoint: POST /api/onboarding/demo-project creates a
+      project with World Bank sample dataset pre-loaded
+- [x] Onboarding status endpoint: GET /api/onboarding/status reports
+      has_projects, has_demo, sample_data_available
+- [x] Frontend WelcomeCard: workflow steps, "Try Sample Dataset" button,
+      "Create New Project" button
+- [x] Projects page empty state with demo project option
+- [x] Frontend onboarding types, API functions
+- [x] .env.example with all ECOPILOT_ variables documented
+- [x] Comprehensive English README rewrite (quick start, Docker, features,
+      architecture, tech stack, repo structure, models, diagnostics,
+      recommendation scoring, workflow, env vars, tests, deployment,
+      reproducibility, publication export, limitations, roadmap)
+- [x] Comprehensive Chinese README (structural mirror)
+- [x] Bilingual docs: quickstart, user-guide, troubleshooting, deployment
+- [x] 274 backend pytest tests passing (267 Phase 1–8 + 7 onboarding)
+- [x] TypeScript type-checks pass, Next.js production build succeeds
+
+## Phase 10 — Advanced Econometric Models and Causal Identification Workflows
 
 - [ ] Instrumental variables (2SLS) support
 - [ ] Difference-in-differences estimation
