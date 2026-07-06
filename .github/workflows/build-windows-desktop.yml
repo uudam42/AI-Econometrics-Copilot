@@ -53,13 +53,21 @@ jobs:
           .venv\Scripts\activate
           pyinstaller ai-econometrics-backend.spec --distpath ..\desktop\src-tauri\binaries --workpath build -y
 
+      - name: Rename sidecar with target triple
+        run: |
+          $triple = (rustc --version --verbose | Select-String "host:").ToString().Split(" ")[1]
+          Move-Item "desktop\src-tauri\binaries\ai-econometrics-backend.exe" "desktop\src-tauri\binaries\ai-econometrics-backend-$triple.exe" -Force
+          Write-Host "Renamed sidecar to ai-econometrics-backend-$triple.exe"
+        shell: pwsh
+
       - name: Verify backend sidecar
         run: |
-          if (!(Test-Path "desktop\src-tauri\binaries\ai-econometrics-backend.exe")) {
+          $sidecar = Get-ChildItem "desktop\src-tauri\binaries\ai-econometrics-backend-*.exe"
+          if (!$sidecar) {
             Write-Error "Backend sidecar not found"
             exit 1
           }
-          Write-Host "Backend sidecar built successfully"
+          Write-Host "Backend sidecar built: $($sidecar.Name)"
         shell: pwsh
 
       - name: Install frontend dependencies
@@ -84,12 +92,12 @@ jobs:
         shell: pwsh
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli
+        run: npm install -g @tauri-apps/cli@^2
 
       - name: Build Tauri installer
         run: |
           cd desktop\src-tauri
-          cargo tauri build
+          tauri build
 
       - name: Upload MSI installer
         uses: actions/upload-artifact@v4

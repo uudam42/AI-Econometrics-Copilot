@@ -39,14 +39,18 @@ pip install -q pyinstaller
 Write-Host "Building backend executable..." -ForegroundColor Yellow
 pyinstaller ai-econometrics-backend.spec --distpath "$OutputDir" --workpath "$BackendDir\build" -y
 
-# Verify
-$ExeName = Join-Path $OutputDir "ai-econometrics-backend.exe"
-if (Test-Path $ExeName) {
-    $size = (Get-Item $ExeName).Length / 1MB
-    Write-Host "SUCCESS: $ExeName ({0:N1} MB)" -f $size -ForegroundColor Green
-} else {
-    Write-Host "ERROR: Backend executable not found at $ExeName" -ForegroundColor Red
+# Rename with the Rust target triple — Tauri's externalBin resolves
+# sidecars as <name>-<target-triple>.exe at build time.
+$RawExe = Join-Path $OutputDir "ai-econometrics-backend.exe"
+if (-not (Test-Path $RawExe)) {
+    Write-Host "ERROR: Backend executable not found at $RawExe" -ForegroundColor Red
     exit 1
 }
+$Triple = (rustc --version --verbose | Select-String "host:").ToString().Split(" ")[1]
+$FinalExe = Join-Path $OutputDir "ai-econometrics-backend-$Triple.exe"
+Move-Item $RawExe $FinalExe -Force
+
+$size = (Get-Item $FinalExe).Length / 1MB
+Write-Host ("SUCCESS: $FinalExe ({0:N1} MB)" -f $size) -ForegroundColor Green
 
 Set-Location $RootDir

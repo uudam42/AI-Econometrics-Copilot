@@ -1,10 +1,10 @@
 use std::path::PathBuf;
-use std::process::{Child, Command};
+use std::process::Child;
 use std::sync::Mutex;
 use std::time::Duration;
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
+use tauri::{Manager, State};
 
 mod sidecar;
 
@@ -117,13 +117,6 @@ pub fn run() {
 
             Ok(())
         })
-        .on_event(|app, event| {
-            if let tauri::RunEvent::ExitRequested { .. } = event {
-                if let Some(state) = app.try_state::<BackendState>() {
-                    sidecar::stop_backend(&state.process);
-                }
-            }
-        })
         .invoke_handler(tauri::generate_handler![
             get_backend_base_url,
             get_backend_info,
@@ -132,6 +125,13 @@ pub fn run() {
             open_exports_folder,
             open_logs_folder,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running application");
+        .build(tauri::generate_context!())
+        .expect("error while building application")
+        .run(|app, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                if let Some(state) = app.try_state::<BackendState>() {
+                    sidecar::stop_backend(&state.process);
+                }
+            }
+        });
 }

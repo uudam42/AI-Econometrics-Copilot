@@ -38,7 +38,10 @@ End users do not need any of these installed.
 desktop\scripts\package-backend.bat
 ```
 
-This creates `desktop/src-tauri/binaries/ai-econometrics-backend.exe`.
+This creates `desktop/src-tauri/binaries/ai-econometrics-backend-<target-triple>.exe`
+(e.g. `ai-econometrics-backend-x86_64-pc-windows-msvc.exe`) — Tauri's `externalBin`
+resolves sidecars by target triple at build time and bundles them next to the
+main executable with the suffix stripped.
 
 ### 2. Build Desktop Installer
 

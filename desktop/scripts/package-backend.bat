@@ -29,11 +29,15 @@ pip install -q pyinstaller
 echo Building backend executable...
 pyinstaller ai-econometrics-backend.spec --distpath "%OUTPUT_DIR%" --workpath "%BACKEND_DIR%\build" -y
 
-if exist "%OUTPUT_DIR%\ai-econometrics-backend.exe" (
-    echo SUCCESS: Backend executable built.
-) else (
+if not exist "%OUTPUT_DIR%\ai-econometrics-backend.exe" (
     echo ERROR: Backend executable not found.
     exit /b 1
 )
+
+REM Rename with the Rust target triple - Tauri's externalBin resolves
+REM sidecars as name-target-triple.exe at build time.
+for /f "tokens=2" %%i in ('rustc --version --verbose ^| findstr "host:"') do set TRIPLE=%%i
+move /y "%OUTPUT_DIR%\ai-econometrics-backend.exe" "%OUTPUT_DIR%\ai-econometrics-backend-%TRIPLE%.exe" >nul
+echo SUCCESS: Backend sidecar built as ai-econometrics-backend-%TRIPLE%.exe
 
 cd /d "%ROOT_DIR%"

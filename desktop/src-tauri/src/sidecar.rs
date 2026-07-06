@@ -1,11 +1,10 @@
 use std::io;
-use std::net::TcpListener;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 const SUBDIRS: &[&str] = &[
     "database", "uploads", "artifacts", "exports", "logs", "config",
@@ -60,11 +59,29 @@ pub fn start_backend(
         "ai-econometrics-backend"
     };
 
+    // Tauri installs externalBin sidecars next to the main executable with
+    // the target-triple suffix stripped; the resource-dir variants cover
+    // dev layouts where the binary was never bundled.
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("."));
     let resource_dir = app
         .path()
         .resource_dir()
         .unwrap_or_else(|_| PathBuf::from("."));
-    let sidecar_path = resource_dir.join("binaries").join(sidecar_name);
+
+    let candidates = [
+        exe_dir.join(sidecar_name),
+        exe_dir.join("binaries").join(sidecar_name),
+        resource_dir.join(sidecar_name),
+        resource_dir.join("binaries").join(sidecar_name),
+    ];
+    let sidecar_path = candidates
+        .iter()
+        .find(|p| p.exists())
+        .cloned()
+        .unwrap_or_else(|| candidates[0].clone());
 
     let log_file_path = data_dir.join("logs").join("backend.log");
     let log_file = std::fs::File::create(&log_file_path).unwrap_or_else(|_| {

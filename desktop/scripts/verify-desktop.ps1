@@ -38,7 +38,7 @@ Check "Sample data exists" (Test-Path "$RootDir\sample_data\world_bank_panel_sam
 
 Write-Host ""
 Write-Host "Build artifacts:" -ForegroundColor Yellow
-Check "Backend sidecar built" (Test-Path "$RootDir\desktop\src-tauri\binaries\ai-econometrics-backend.exe")
+Check "Backend sidecar built" (Test-Path "$RootDir\desktop\src-tauri\binaries\ai-econometrics-backend-*.exe")
 Check "Frontend static export" (Test-Path "$RootDir\frontend\out\index.html")
 $bundleDir = "$RootDir\desktop\src-tauri\target\release\bundle"
 $msi = Get-ChildItem "$bundleDir\msi\*.msi" -ErrorAction SilentlyContinue
