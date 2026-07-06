@@ -322,6 +322,33 @@ PDF export is a documented placeholder — DOCX and LaTeX are fully functional a
 
 ---
 
+## Standalone Windows Desktop Application
+
+A standalone Windows desktop version is available — no Docker, Python, Node.js, or browser required.
+
+**For end users:**
+1. Download the installer (`.msi` or `Setup.exe`) from Releases
+2. Install the application
+3. Open **AI Econometrics Copilot** from the Start Menu
+4. All data stays on the local computer in `%LOCALAPPDATA%\AI Econometrics Copilot\`
+
+**For developers building the installer:**
+```powershell
+# Prerequisites: Rust, Node.js 18+, Python 3.10+
+.\desktop\scripts\build-desktop.ps1
+```
+
+See [`desktop/README.md`](desktop/README.md) for full build instructions.
+
+**Desktop technology:** Tauri 2.x + embedded FastAPI sidecar (PyInstaller) + static Next.js frontend.
+
+**Not yet available:**
+- macOS or Linux desktop packages
+- Automatic updates
+- Code signing (unsigned builds trigger Windows SmartScreen warnings)
+
+---
+
 ## Current Limitations
 
 - Single-user, local SQLite storage — no multi-user or cloud sync
@@ -330,6 +357,7 @@ PDF export is a documented placeholder — DOCX and LaTeX are fully functional a
 - PDF export requires Pango/Cairo native libraries — DOCX and LaTeX available as alternatives
 - Hausman test uses pseudo-inverse — may report unavailable for near-singular matrices
 - Two-way fixed effects may absorb variables collinear with entity/time dummies (reported transparently)
+- Windows desktop build is unsigned — SmartScreen warnings expected
 
 ---
 
@@ -345,8 +373,9 @@ PDF export is a documented placeholder — DOCX and LaTeX are fully functional a
 | Phase 6 | Constrained exploratory relationship discovery | Complete |
 | Phase 7 | Persistent research workspaces | Complete |
 | Phase 8 | Publication-ready reporting and academic export | Complete |
-| Phase 9 | Onboarding, one-click startup, documentation | In Progress |
-| Phase 10 | Advanced econometric models and causal workflows | Future |
+| Phase 9 | Onboarding, one-click startup, documentation | Complete |
+| Phase 10 | Standalone Windows desktop application | In Progress |
+| Phase 11 | Advanced econometric models and causal workflows | Future |
 
 ---
 
