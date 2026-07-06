@@ -97,6 +97,19 @@ class DiscoveryRow(Base):
     result_json = Column(JSON, nullable=True)
 
 
+class PublicationExportRow(Base):
+    __tablename__ = "publication_exports"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, nullable=True)
+    source_type = Column(String, nullable=False)
+    source_id = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    config_json = Column(JSON, nullable=True)
+    result_json = Column(JSON, nullable=True)
+
+
 class TimelineEventRow(Base):
     __tablename__ = "timeline_events"
 

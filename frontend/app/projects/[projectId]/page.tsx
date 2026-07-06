@@ -117,6 +117,12 @@ export default function ProjectDetailPage() {
                 Export
               </h3>
               <ProjectExportActions projectId={projectId} />
+              <Link
+                href={`/projects/${projectId}/exports`}
+                className="mt-3 block text-xs text-accent hover:underline"
+              >
+                Publication Exports &rarr;
+              </Link>
             </section>
           </div>
         </div>

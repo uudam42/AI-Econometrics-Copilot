@@ -366,3 +366,50 @@ export async function downloadProjectBundle(
   if (!response.ok) await parseErrorOrThrow(response);
   return response.blob();
 }
+
+// ---------------------------------------------------------------------------
+// Publication Exports
+// ---------------------------------------------------------------------------
+
+export async function createPublicationExport(
+  config: import("@/types/publication_export").PublicationExportConfig
+): Promise<import("@/types/publication_export").PublicationExportResult> {
+  const response = await fetch(`${API_BASE_URL}/publication-exports/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(config),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function getPublicationExport(
+  exportId: string
+): Promise<import("@/types/publication_export").PublicationExportResult> {
+  const response = await fetch(
+    `${API_BASE_URL}/publication-exports/${exportId}`
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function downloadPublicationExportFile(
+  exportId: string,
+  format: string
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_BASE_URL}/publication-exports/${exportId}/download/${format}`
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.blob();
+}
+
+export async function listProjectPublicationExports(
+  projectId: string
+): Promise<import("@/types/publication_export").PublicationExportListItem[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/publication-exports/by-project/${projectId}`
+  );
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}

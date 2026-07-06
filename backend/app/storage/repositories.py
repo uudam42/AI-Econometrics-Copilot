@@ -34,6 +34,7 @@ from app.storage.models import (
     DiscoveryRow,
     PlanRow,
     ProjectRow,
+    PublicationExportRow,
     ReportRow,
     TimelineEventRow,
 )
@@ -868,6 +869,125 @@ class DiscoveryRepository:
 
 
 # ---------------------------------------------------------------------------
+# Publication Export Repository
+# ---------------------------------------------------------------------------
+
+class PublicationExportRecord:
+    __slots__ = ("export_id", "project_id", "source_type", "source_id",
+                 "title", "created_at", "config", "result")
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+class PublicationExportRepository:
+    def __init__(self) -> None:
+        self._cache: dict[str, PublicationExportRecord] = {}
+        self._lock = threading.Lock()
+
+    def create(
+        self,
+        result,
+        config,
+        project_id: str | None = None,
+    ) -> PublicationExportRecord:
+        row = PublicationExportRow(
+            id=result.export_id,
+            project_id=project_id,
+            source_type=result.source_type,
+            source_id=result.source_id,
+            title=result.title,
+            created_at=result.created_at,
+            config_json=config.model_dump(mode="json"),
+            result_json=result.model_dump(mode="json"),
+        )
+        with get_session() as session:
+            session.add(row)
+            session.commit()
+
+        record = PublicationExportRecord(
+            export_id=result.export_id,
+            project_id=project_id,
+            source_type=result.source_type,
+            source_id=result.source_id,
+            title=result.title,
+            created_at=result.created_at,
+            config=config,
+            result=result,
+        )
+        with self._lock:
+            self._cache[result.export_id] = record
+
+        _add_timeline_event(
+            project_id, "publication_export_created",
+            f"Publication export created: {result.title}",
+            artifact_type="publication_export", artifact_id=result.export_id,
+        )
+        return record
+
+    def get(self, export_id: str) -> PublicationExportRecord:
+        with self._lock:
+            if export_id in self._cache:
+                return self._cache[export_id]
+
+        with get_session() as session:
+            row = session.get(PublicationExportRow, export_id)
+            if row is None:
+                raise ModelNotFoundError(f"No publication export found with id '{export_id}'.")
+
+            from app.schemas.publication_export import (
+                PublicationExportConfig,
+                PublicationExportResult,
+            )
+            record = PublicationExportRecord(
+                export_id=export_id,
+                project_id=row.project_id,
+                source_type=row.source_type,
+                source_id=row.source_id,
+                title=row.title,
+                created_at=row.created_at,
+                config=PublicationExportConfig(**row.config_json),
+                result=PublicationExportResult(**row.result_json),
+            )
+            with self._lock:
+                self._cache[export_id] = record
+            return record
+
+    def list_by_project(self, project_id: str) -> list[PublicationExportRecord]:
+        records: list[PublicationExportRecord] = []
+        with get_session() as session:
+            rows = session.execute(
+                select(PublicationExportRow)
+                .where(PublicationExportRow.project_id == project_id)
+                .order_by(PublicationExportRow.created_at.desc())
+            ).scalars().all()
+            for row in rows:
+                with self._lock:
+                    if row.id in self._cache:
+                        records.append(self._cache[row.id])
+                        continue
+                from app.schemas.publication_export import (
+                    PublicationExportConfig,
+                    PublicationExportResult,
+                )
+                rec = PublicationExportRecord(
+                    export_id=row.id,
+                    project_id=row.project_id,
+                    source_type=row.source_type,
+                    source_id=row.source_id,
+                    title=row.title,
+                    created_at=row.created_at,
+                    config=PublicationExportConfig(**row.config_json),
+                    result=PublicationExportResult(**row.result_json),
+                )
+                with self._lock:
+                    self._cache[row.id] = rec
+                records.append(rec)
+        return records
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -890,3 +1010,4 @@ comparison_repository = ComparisonRepository()
 plan_repository = PlanRepository()
 report_repository = ReportRepository()
 discovery_repository = DiscoveryRepository()
+publication_export_repository = PublicationExportRepository()

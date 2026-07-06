@@ -38,6 +38,12 @@ AI understands and recommends — Python statistical libraries do all real compu
 | **Artifact history** | Browse all artifacts (datasets, analyses, plans, reports, discoveries) linked to a project |
 | **Reproducible bundle export** | Download a ZIP bundle of any project — metadata, artifacts, timeline, and optionally raw data |
 | **Restart recovery** | DataFrames cached in memory, lazily reloaded from disk on restart — no data loss |
+| **Publication-ready tables** | Academic regression tables (single-model, multi-model comparison, coefficient stability, descriptive stats, diagnostics) with *** significance notation |
+| **Academic figures** | Coefficient plot, residual vs fitted, actual vs predicted, correlation heatmap, stability chart — all via matplotlib |
+| **DOCX export** | Genuinely editable Word documents with cover page, tables, figures, and professional formatting via python-docx |
+| **LaTeX export** | Standalone .tex with tables/, figures/, appendix/ directories — compiles with pdflatex |
+| **Methodology appendix** | Auto-generated methodology section with variable selection, model specification, and limitations |
+| **Reproducibility appendix** | Dataset checksum, transformation log, model configuration, software versions — all deterministic |
 | Results dashboard | Coefficient table, coefficient plot, residual charts, correlation heatmap |
 | Reproducible export | Complete JSON artifact including software versions |
 
@@ -79,6 +85,8 @@ docs/             Architecture, API reference, econometric rules, dev plan
 - statsmodels (OLS, diagnostics)
 - linearmodels (panel regression)
 - SQLAlchemy 2.x (SQLite persistence)
+- python-docx (DOCX export)
+- matplotlib (publication figures)
 - openpyxl (Excel support)
 - pytest, httpx
 
@@ -97,7 +105,7 @@ ai-econometrics-copilot/
 ├── backend/
 │   ├── app/
 │   │   ├── analysis/          # diagnostics.py, model_runner.py, ols_models.py, panel_models.py, model_recommender.py, econometric_rules.py, discovery_*.py
-│   │   ├── api/               # datasets.py, analyses.py, projects.py
+│   │   ├── api/               # datasets.py, analyses.py, projects.py, publication_exports.py
 │   │   ├── core/              # config.py, errors.py, logging.py
 │   │   ├── models/            # backward-compatible re-export shims
 │   │   ├── storage/           # database.py, models.py, repositories.py (SQLite + in-memory cache)
@@ -111,14 +119,16 @@ ai-econometrics-copilot/
 │   │   ├── datasets/[datasetId]/discover/   # Exploratory relationship discovery
 │   │   ├── analyses/[analysisId]/           # Results dashboard
 │   │   ├── projects/                        # Project list, create, detail
-│   │   └── projects/[projectId]/            # Project workspace, datasets, timeline
+│   │   ├── projects/[projectId]/            # Project workspace, datasets, timeline, exports
+│   │   └── publication-exports/[exportId]/ # Publication export detail
 │   ├── components/
 │   │   ├── modeling/                        # VariableRoleSelector, TransformationPanel, ModelConfigurationPanel
 │   │   ├── projects/                        # ProjectCard, ProjectForm, ProjectOverview, ProjectTimeline, ArtifactHistoryTable
+│   │   ├── publication-exports/             # PublicationExportForm, ExportDownloadActions, ExportStatus, ExportList
 │   │   ├── results/                         # CoefficientTable, CoefficientPlot, ResidualPlot, CorrelationHeatmap, DiagnosticsPanel
 │   │   └── ui/                              # card, button, badge, table, select
 │   ├── lib/                                 # api.ts, utils.ts
-│   └── types/                               # dataset.ts, modeling.ts, project.ts
+│   └── types/                               # dataset.ts, modeling.ts, project.ts, publication_export.ts
 ├── sample_data/
 │   └── world_bank_panel_sample.xlsx
 ├── docs/
@@ -212,7 +222,7 @@ cd backend
 python -m pytest -q
 ```
 
-Expected: **229 tests passing**.
+Expected: **267 tests passing**.
 
 Frontend type check:
 ```bash
@@ -270,7 +280,7 @@ npm run build
 - Single-user, local SQLite storage — no multi-user or cloud sync
 - No authentication or multi-user isolation
 - No arbitrary formula editor (variables selected through UI)
-- No LaTeX/PDF report export
+- PDF export requires native Pango/Cairo libraries — DOCX and LaTeX available as alternatives
 - Hausman test uses pseudo-inverse for robustness — may report unavailable for near-singular matrices
 - Two-way fixed effects may absorb variables collinear with entity/time dummies (now reported transparently)
 
@@ -328,7 +338,8 @@ The model selection recommendation uses a weighted multi-criteria score:
 | Phase 5 | Natural-language research planning, absorbed variable transparency | ✅ Complete |
 | Phase 6 | Constrained exploratory relationship discovery | ✅ Complete |
 | Phase 7 | Persistent research workspaces and reproducible project storage | ✅ Complete |
-| Phase 8 | Publication-ready reporting and advanced export | Future |
+| Phase 8 | Publication-ready reporting and advanced academic export | ✅ Complete |
+| Phase 9 | Advanced econometric models and causal identification workflows | Future |
 
 ---
 
