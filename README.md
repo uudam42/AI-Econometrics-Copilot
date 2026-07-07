@@ -1,7 +1,6 @@
 <img width="1672" height="941" alt="econometricsFlag" src="https://github.com/user-attachments/assets/3971eb69-4ce1-4160-8f41-5fb5f857fc7a" />
 
-
-                            [中文文档](README.zh-CN.md)
+[中文文档](README.zh-CN.md)
 
 # AI Econometrics Copilot
 
