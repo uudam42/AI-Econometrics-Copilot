@@ -110,6 +110,25 @@ class PublicationExportRow(Base):
     result_json = Column(JSON, nullable=True)
 
 
+class QuickAnalyzeSessionRow(Base):
+    __tablename__ = "quick_analyze_sessions"
+
+    id = Column(String, primary_key=True)
+    stage = Column(String, nullable=False, default="created")
+    project_id = Column(String, nullable=True)
+    dataset_id = Column(String, nullable=True)
+    plan_id = Column(String, nullable=True)
+    analysis_id = Column(String, nullable=True)
+    research_question = Column(Text, nullable=True)
+    analysis_intent = Column(String, default="association")
+    recommendation_json = Column(JSON, nullable=True)
+    summary_json = Column(JSON, nullable=True)
+    progress_message = Column(Text, default="")
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+
+
 class TimelineEventRow(Base):
     __tablename__ = "timeline_events"
 
