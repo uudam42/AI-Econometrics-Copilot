@@ -2,12 +2,11 @@
   "$schema": "https://raw.githubusercontent.com/nicedoc/schemas/refs/heads/main/tauri/tauri.conf.schema.json",
   "productName": "AI Econometrics Copilot",
   "version": "0.1.0",
-  "identifier": "com.ai-econometrics-copilot.app",
+  "identifier": "com.ai-econometrics-copilot.desktop",
   "build": {
     "frontendDist": "../../frontend/out",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "cd ../../frontend && npm run dev",
-    "beforeBuildCommand": "cd ../../frontend && npm run build:static"
+    "beforeDevCommand": "cd ../../frontend && npm run dev"
   },
   "app": {
     "withGlobalTauri": true,
