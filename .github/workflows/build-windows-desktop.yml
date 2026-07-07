@@ -2,8 +2,19 @@ name: Build Windows Desktop
 
 on:
   push:
-    branches: [feature/standalone-windows-desktop]
+    branches:
+      - feature/standalone-windows-desktop
+      - feature/zero-config-desktop-release
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Create a GitHub release from this build"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   build-windows:
@@ -78,7 +89,6 @@ jobs:
       - name: Build static frontend
         run: |
           cd frontend
-          $env:NEXT_PUBLIC_BUILD_TARGET = "desktop"
           npm run build:static
         shell: pwsh
 
@@ -99,12 +109,30 @@ jobs:
           cd desktop\src-tauri
           tauri build
 
+      - name: Generate SHA256 checksums
+        run: |
+          $outDir = "desktop\src-tauri\target\release\bundle"
+          $artifacts = @()
+          $artifacts += Get-ChildItem "$outDir\msi\*.msi" -ErrorAction SilentlyContinue
+          $artifacts += Get-ChildItem "$outDir\nsis\*.exe" -ErrorAction SilentlyContinue
+          foreach ($file in $artifacts) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($file.Name)" | Out-File -Append "$outDir\checksums.sha256" -Encoding utf8
+            Write-Host "SHA256($($file.Name)) = $hash"
+          }
+          if (Test-Path "$outDir\checksums.sha256") {
+            Write-Host "--- checksums.sha256 ---"
+            Get-Content "$outDir\checksums.sha256"
+          }
+        shell: pwsh
+
       - name: Upload MSI installer
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi-installer
           path: desktop/src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: warn
+          retention-days: 30
 
       - name: Upload NSIS installer
         uses: actions/upload-artifact@v4
@@ -112,3 +140,12 @@ jobs:
           name: windows-nsis-installer
           path: desktop/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: desktop/src-tauri/target/release/bundle/checksums.sha256
+          if-no-files-found: warn
+          retention-days: 30

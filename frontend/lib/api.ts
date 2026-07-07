@@ -448,3 +448,60 @@ export async function createDemoProject(): Promise<
 export async function initializeApiBaseUrl(): Promise<void> {
   _resolvedBaseUrl = await getApiBaseUrl();
 }
+
+// ---------------------------------------------------------------------------
+// Quick Analyze
+// ---------------------------------------------------------------------------
+
+export async function quickAnalyzeUpload(
+  file: File,
+  researchQuestion?: string,
+  analysisIntent: "association" | "exploratory" = "association"
+): Promise<import("@/types/quick_analyze").QuickAnalyzeUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (researchQuestion) formData.append("research_question", researchQuestion);
+  formData.append("analysis_intent", analysisIntent);
+
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/quick-analyze/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function quickAnalyzePlan(
+  sessionId: string
+): Promise<import("@/types/quick_analyze").QuickAnalyzePlanResponse> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/quick-analyze/${sessionId}/plan`, {
+    method: "POST",
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function quickAnalyzeConfirm(
+  sessionId: string,
+  body: import("@/types/quick_analyze").ConfirmationRequest
+): Promise<import("@/types/quick_analyze").QuickAnalyzeRunResponse> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/quick-analyze/${sessionId}/confirm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function quickAnalyzeGetSession(
+  sessionId: string
+): Promise<import("@/types/quick_analyze").QuickAnalyzeSessionDetail> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/quick-analyze/${sessionId}`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}

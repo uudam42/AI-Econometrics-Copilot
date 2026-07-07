@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import analyses, comparisons, datasets, discovery, onboarding, planning, projects, publication_exports, reports
+from app.api import analyses, comparisons, datasets, discovery, onboarding, planning, projects, publication_exports, quick_analyze, reports
 from app.core.config import settings
 from app.core.errors import AppError, app_error_handler, unhandled_exception_handler
 from app.core.logging import configure_logging, get_logger
@@ -50,6 +50,7 @@ app.include_router(planning.router, prefix=settings.api_prefix)
 app.include_router(discovery.router, prefix=settings.api_prefix)
 app.include_router(publication_exports.router, prefix=settings.api_prefix)
 app.include_router(onboarding.router, prefix=settings.api_prefix)
+app.include_router(quick_analyze.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["meta"])
