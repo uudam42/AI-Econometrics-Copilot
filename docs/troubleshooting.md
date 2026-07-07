@@ -187,6 +187,36 @@ Most type errors are in the source, not configuration. Check the error messages 
 
 ---
 
+## Desktop Application Issues
+
+### SmartScreen warning on Windows
+
+Unsigned builds trigger Windows SmartScreen. Click "More info" → "Run anyway".
+
+### Desktop app shows blank window
+
+The backend sidecar may have failed to start.
+
+**Solution:**
+1. Click **Help → View Logs** in the app menu
+2. Check `backend.log` for startup errors
+3. Ensure no other process is using the selected port
+
+### Desktop app data location
+
+All data is in `%LOCALAPPDATA%\AI Econometrics Copilot\`:
+- `database/` — SQLite database
+- `uploads/` — uploaded datasets
+- `artifacts/` — analysis artifacts
+- `exports/` — generated documents
+- `logs/` — application logs
+
+### Uninstall preserves data
+
+Uninstalling the app does not delete user data. To remove all data, manually delete `%LOCALAPPDATA%\AI Econometrics Copilot\`.
+
+---
+
 ## Getting Help
 
 - Check the [API documentation](http://localhost:8000/docs) (Swagger UI)

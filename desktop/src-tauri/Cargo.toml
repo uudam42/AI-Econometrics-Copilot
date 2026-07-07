@@ -1,0 +1,39 @@
+[package]
+name = "ai-econometrics-copilot"
+version = "0.1.0"
+description = "AI Econometrics Copilot — Standalone Desktop Application"
+authors = ["uudam"]
+edition = "2021"
+
+[lib]
+name = "ai_econometrics_copilot_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "ai-econometrics-copilot"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-process = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+portpicker = "0.1"
+dirs = "6"
+opener = "0.7"
+log = "0.4"
+env_logger = "0.11"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = "s"

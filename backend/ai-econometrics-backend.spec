@@ -1,0 +1,102 @@
+# -*- mode: python ; coding: utf-8 -*-
+# PyInstaller spec for AI Econometrics Copilot backend sidecar.
+# Build: cd backend && pyinstaller ai-econometrics-backend.spec
+
+import os
+import sys
+from pathlib import Path
+
+block_cipher = None
+root = Path(SPECPATH)
+
+a = Analysis(
+    [str(root / 'app' / '__main__.py')],
+    pathex=[str(root)],
+    binaries=[],
+    datas=[],
+    hiddenimports=[
+        'uvicorn.logging',
+        'uvicorn.loops',
+        'uvicorn.loops.auto',
+        'uvicorn.protocols',
+        'uvicorn.protocols.http',
+        'uvicorn.protocols.http.auto',
+        'uvicorn.protocols.websockets',
+        'uvicorn.protocols.websockets.auto',
+        'uvicorn.lifespan',
+        'uvicorn.lifespan.on',
+        'uvicorn.lifespan.off',
+        'app',
+        'app.main',
+        'app.core',
+        'app.core.config',
+        'app.core.errors',
+        'app.core.logging',
+        'app.api',
+        'app.api.datasets',
+        'app.api.analyses',
+        'app.api.comparisons',
+        'app.api.reports',
+        'app.api.planning',
+        'app.api.discovery',
+        'app.api.projects',
+        'app.api.publication_exports',
+        'app.api.onboarding',
+        'app.schemas',
+        'app.services',
+        'app.analysis',
+        'app.reports',
+        'app.storage',
+        'app.storage.database',
+        'app.storage.models',
+        'app.storage.repositories',
+        'statsmodels',
+        'statsmodels.api',
+        'statsmodels.stats.diagnostic',
+        'statsmodels.stats.stattools',
+        'statsmodels.stats.outliers_influence',
+        'linearmodels',
+        'linearmodels.panel',
+        'linearmodels.panel.model',
+        'scipy.stats',
+        'scipy.linalg',
+        'scipy.sparse',
+        'sklearn.utils._cython_blas',
+        'openpyxl',
+        'docx',
+        'matplotlib',
+        'matplotlib.backends.backend_agg',
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=['tkinter', 'test', 'unittest'],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    [],
+    name='ai-econometrics-backend',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)

@@ -74,6 +74,17 @@ bash scripts/reset-local-data.sh       # 本地
 docker compose down -v                 # Docker
 ```
 
+## 方式三：Windows 桌面应用
+
+从 Releases 下载安装程序。无需 Docker、Python 或 Node.js。
+
+1. 运行安装程序（`.msi` 或 `Setup.exe`）
+2. 从开始菜单打开 **AI Econometrics Copilot**
+3. 应用自动启动 — 无需额外设置
+4. 所有数据存储在本地 `%LOCALAPPDATA%\AI Econometrics Copilot\`
+
+注意：未签名构建可能触发 Windows SmartScreen 警告。点击"更多信息"→"仍要运行"。
+
 ## 下一步
 
 - [用户指南](user-guide.zh-CN.md) — 完整功能介绍

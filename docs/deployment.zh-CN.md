@@ -185,3 +185,46 @@ docker compose up --build -d
 ```
 
 命名卷中的数据在重建后保留。
+
+---
+
+## Windows 桌面分发
+
+无需 Docker 或任何运行时依赖的独立 Windows 部署：
+
+### 构建安装程序
+
+前置条件（仅开发机器）：
+- Rust（`rustup default stable`）
+- Node.js 18+
+- Python 3.10+
+
+```powershell
+.\desktop\scripts\build-desktop.ps1
+```
+
+输出：`desktop/src-tauri/target/release/bundle/msi/` 和 `nsis/`
+
+### 终端用户安装
+
+1. 下载安装程序（`.msi` 或 `Setup.exe`）
+2. 运行安装程序
+3. 从开始菜单打开
+
+无需 Docker、Python、Node.js 或浏览器。
+
+### 桌面数据位置
+
+用户数据存储在 `%LOCALAPPDATA%\AI Econometrics Copilot\`：
+- `database/` — SQLite 数据库（升级后保留）
+- `uploads/`、`artifacts/`、`exports/` — 用户文件
+- `logs/` — 应用日志
+
+卸载不会删除用户数据。
+
+### 已知限制
+
+- 仅限 Windows（macOS 和 Linux 桌面包尚未构建）
+- 未签名构建 — 预计出现 Windows SmartScreen 警告
+- 无自动更新
+- 无云同步

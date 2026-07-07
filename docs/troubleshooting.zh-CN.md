@@ -183,6 +183,36 @@ npx tsc --noEmit  # 显示所有类型错误
 
 ---
 
+## 桌面应用问题
+
+### Windows SmartScreen 警告
+
+未签名构建会触发 SmartScreen。点击"更多信息"→"仍要运行"。
+
+### 桌面应用显示空白窗口
+
+后端 sidecar 可能启动失败。
+
+**解决方案：**
+1. 在应用菜单中点击 **帮助 → 查看日志**
+2. 检查 `backend.log` 中的启动错误
+3. 确保没有其他进程占用选定端口
+
+### 桌面应用数据位置
+
+所有数据在 `%LOCALAPPDATA%\AI Econometrics Copilot\`：
+- `database/` — SQLite 数据库
+- `uploads/` — 上传的数据集
+- `artifacts/` — 分析档案
+- `exports/` — 生成的文档
+- `logs/` — 应用日志
+
+### 卸载保留数据
+
+卸载应用不会删除用户数据。要删除所有数据，手动删除 `%LOCALAPPDATA%\AI Econometrics Copilot\`。
+
+---
+
 ## 获取帮助
 
 - 查看 [API 文档](http://localhost:8000/docs)（Swagger UI）

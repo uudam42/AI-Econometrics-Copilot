@@ -74,6 +74,17 @@ bash scripts/reset-local-data.sh       # local
 docker compose down -v                 # Docker
 ```
 
+## Option 3: Windows Desktop Application
+
+Download the installer from Releases. No Docker, Python, or Node.js required.
+
+1. Run the installer (`.msi` or `Setup.exe`)
+2. Open **AI Econometrics Copilot** from the Start Menu
+3. The application starts automatically — no additional setup needed
+4. All data is stored locally in `%LOCALAPPDATA%\AI Econometrics Copilot\`
+
+Note: Unsigned builds may trigger a Windows SmartScreen warning. Click "More info" → "Run anyway".
+
 ## Next Steps
 
 - [User Guide](user-guide.md) — full feature walkthrough

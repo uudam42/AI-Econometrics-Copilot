@@ -213,7 +213,7 @@
 - [x] 267 backend pytest tests passing (229 Phase 1–7 + 38 Phase 8)
 - [x] TypeScript type-checks pass, Next.js production build succeeds
 
-## Phase 9 — Onboarding, One-Click Startup, and Documentation (In Progress)
+## Phase 9 — Onboarding, One-Click Startup, and Documentation ✅ Completed
 
 - [x] Docker one-command startup: docker-compose.yml with named volumes,
       health checks, CORS and env configuration, .dockerignore files
@@ -240,7 +240,31 @@
 - [x] 274 backend pytest tests passing (267 Phase 1–8 + 7 onboarding)
 - [x] TypeScript type-checks pass, Next.js production build succeeds
 
-## Phase 10 — Advanced Econometric Models and Causal Identification Workflows
+## Phase 10 — Standalone Windows Desktop Application (In Progress)
+
+- [x] Tauri 2.x desktop shell: Rust host, native window, sidecar lifecycle
+- [x] Sidecar management: dynamic port selection, health polling, graceful shutdown
+- [x] Tauri commands: get_backend_base_url, get_backend_info, get_app_info,
+      open_data_folder, open_exports_folder, open_logs_folder
+- [x] Next.js static export support: conditional output: "export", trailingSlash,
+      build:static npm script, dynamic route generateStaticParams wrappers
+- [x] Shared API base URL resolver: Tauri invoke in desktop, env fallback in web
+- [x] @tauri-apps/api frontend integration
+- [x] FastAPI __main__.py entry point with dynamic port (AI_ECONOMETRICS_PORT)
+- [x] PyInstaller spec for Windows sidecar packaging
+- [x] Desktop build scripts: package-backend.ps1/.bat, build-desktop.ps1/.bat,
+      dev-desktop.ps1/.bat, verify-desktop.ps1
+- [x] GitHub Actions Windows CI: build-windows-desktop.yml
+- [x] Desktop mode tests: config, health, persistence, CORS, port (12 tests)
+- [x] READMEs updated with desktop section (EN + ZH)
+- [x] Docs updated: quickstart, troubleshooting, deployment (EN + ZH)
+- [x] desktop/README.md with architecture and build instructions
+- [x] 286 backend pytest tests passing (274 Phase 1–9 + 12 desktop)
+- [ ] Windows installer generation (requires Windows CI — cannot build on macOS)
+- [ ] Code signing
+- [ ] macOS / Linux desktop packages
+
+## Phase 11 — Advanced Econometric Models and Causal Identification Workflows
 
 - [ ] Instrumental variables (2SLS) support
 - [ ] Difference-in-differences estimation

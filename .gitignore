@@ -16,6 +16,17 @@ frontend/next-env.d.ts
 frontend/*.tsbuildinfo
 frontend/.env.local
 
+# Runtime data
+backend/data/
+
+# Desktop build artifacts
+frontend/out/
+desktop/src-tauri/target/
+desktop/src-tauri/binaries/
+desktop/src-tauri/gen/
+backend/build/
+backend/dist/
+
 # OS / editor
 .DS_Store
 *.log

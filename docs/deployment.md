@@ -185,3 +185,46 @@ docker compose up --build -d
 ```
 
 Data in the named volume persists across rebuilds.
+
+---
+
+## Windows Desktop Distribution
+
+For standalone Windows deployment without Docker or any runtime dependencies:
+
+### Building the Installer
+
+Prerequisites (developer machine only):
+- Rust (`rustup default stable`)
+- Node.js 18+
+- Python 3.10+
+
+```powershell
+.\desktop\scripts\build-desktop.ps1
+```
+
+Output: `desktop/src-tauri/target/release/bundle/msi/` and `nsis/`
+
+### End User Installation
+
+1. Download the installer (`.msi` or `Setup.exe`)
+2. Run the installer
+3. Open from the Start Menu
+
+No Docker, Python, Node.js, or browser required.
+
+### Desktop Data Location
+
+User data is stored in `%LOCALAPPDATA%\AI Econometrics Copilot\`:
+- `database/` — SQLite database (persists across upgrades)
+- `uploads/`, `artifacts/`, `exports/` — user files
+- `logs/` — application logs
+
+Uninstalling does not delete user data.
+
+### Known Limitations
+
+- Windows only (macOS and Linux desktop packages not yet built)
+- Unsigned build — Windows SmartScreen warnings expected
+- No automatic updates
+- No cloud sync
