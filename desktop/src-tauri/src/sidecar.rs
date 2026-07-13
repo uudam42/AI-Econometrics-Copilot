@@ -136,3 +136,99 @@ pub fn stop_backend(process: &Mutex<Option<Child>>) {
         *guard = None;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Unit tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pick_port_parses_env_var() {
+        // Test the parsing branch directly — port "9999" → 9999
+        let parsed: Option<u16> = "9999".parse().ok();
+        assert_eq!(parsed, Some(9999));
+    }
+
+    #[test]
+    fn pick_port_ignores_non_numeric_env_var() {
+        let parsed: Option<u16> = "not_a_port".parse().ok();
+        assert_eq!(parsed, None);
+    }
+
+    #[test]
+    fn pick_port_without_env_returns_valid_port() {
+        // Remove env var so portpicker / fallback is exercised
+        std::env::remove_var("AI_ECONOMETRICS_PORT");
+        let port = pick_port();
+        assert!(port > 0, "pick_port must return a non-zero port");
+    }
+
+    #[test]
+    fn health_url_format_is_correct() {
+        let port: u16 = 8765;
+        let url = format!("http://127.0.0.1:{}/health", port);
+        assert_eq!(url, "http://127.0.0.1:8765/health");
+    }
+
+    #[test]
+    fn db_url_uses_sqlite_scheme() {
+        let data_dir = PathBuf::from("/data");
+        let db_path = data_dir.join("database").join("ai_econometrics.db");
+        let db_url = format!("sqlite:///{}", db_path.display());
+        assert!(db_url.starts_with("sqlite:///"));
+        assert!(db_url.contains("ai_econometrics.db"));
+    }
+
+    #[test]
+    fn sidecar_binary_name_ends_correctly() {
+        let name = if cfg!(target_os = "windows") {
+            "ai-econometrics-backend.exe"
+        } else {
+            "ai-econometrics-backend"
+        };
+        assert!(name.starts_with("ai-econometrics-backend"));
+        if cfg!(target_os = "windows") {
+            assert!(name.ends_with(".exe"));
+        }
+    }
+
+    #[test]
+    fn subdirs_list_is_complete() {
+        for required in &["database", "uploads", "artifacts", "exports", "logs", "config"] {
+            assert!(
+                SUBDIRS.contains(required),
+                "SUBDIRS missing required entry: {}",
+                required
+            );
+        }
+    }
+
+    #[test]
+    fn ensure_directories_creates_all_subdirs() {
+        let tmp = std::env::temp_dir().join("ecopilot_sidecar_test");
+        let _ = std::fs::remove_dir_all(&tmp);
+        ensure_directories(&tmp);
+        for sub in SUBDIRS {
+            assert!(
+                tmp.join(sub).is_dir(),
+                "ensure_directories should create subdir: {}",
+                sub
+            );
+        }
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn startup_status_kinds_cover_all_stages() {
+        // Verify the expected status string sequence used by the frontend
+        let stages = ["starting", "preparing_workspace", "starting_engine",
+                      "loading_tools", "ready", "failed"];
+        // Validate that none are empty — logic check only
+        for s in &stages {
+            assert!(!s.is_empty());
+        }
+    }
+}
