@@ -77,6 +77,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Feature | Description |
 |---|---|
+| Quick Analyze | Four-stage guided workflow: upload → auto-plan → confirm → plain-language results |
+| Bilingual UI | One-click English / 中文 language switcher, persisted across sessions |
+| Windows desktop app | Standalone Tauri installer — no Docker, Python, Node.js, or browser required |
 | Dataset upload | CSV, Excel (.xlsx/.xls), up to 50 MB |
 | Data profiling | Missing values, outliers, skewness, transformation suggestions |
 | Structure detection | Panel / time-series / cross-sectional (rule-based, never name-only) |
@@ -105,6 +108,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Methodology appendix | Auto-generated methodology, variable selection, limitations |
 | Reproducibility appendix | Dataset checksum, transformation log, software versions |
 | Demo project | One-click sample dataset with World Bank panel data |
+| Global index pages | Browse all datasets, analyses, and reports across the workspace |
 
 ---
 
@@ -161,19 +165,22 @@ ai-econometrics-copilot/
 │   │   ├── schemas/        # Pydantic models
 │   │   ├── services/       # profiling, structure detection, transformations
 │   │   └── storage/        # SQLite models, repositories, database engine
-│   ├── tests/              # 274 tests
+│   ├── tests/              # 305 tests
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
-│   ├── app/                # Next.js pages
+│   ├── app/                # Next.js pages (incl. /quick-analyze and index pages)
 │   ├── components/         # UI components (modeling, results, projects, onboarding)
-│   ├── lib/                # API client, utils
+│   ├── lib/                # API client, i18n (EN / zh-CN), utils
 │   ├── types/              # TypeScript interfaces
 │   ├── Dockerfile
 │   └── package.json
+├── desktop/
+│   ├── scripts/            # PowerShell / batch build helpers
+│   └── src-tauri/          # Tauri 2.x Rust shell (menu, sidecar lifecycle, IPC)
 ├── sample_data/            # World Bank panel sample dataset
 ├── scripts/                # start, stop, reset scripts (sh + ps1)
-├── docs/                   # architecture, API, econometric rules, dev plan
+├── docs/                   # architecture, API, econometric rules, bilingual guides
 ├── docker-compose.yml
 ├── Makefile
 └── .env.example
@@ -262,7 +269,7 @@ All backend variables use the `ECOPILOT_` prefix. See [`.env.example`](.env.exam
 ## Running Tests
 
 ```bash
-# Backend (274 tests)
+# Backend (305 tests)
 cd backend
 source .venv/bin/activate
 python -m pytest -q
@@ -272,6 +279,10 @@ cd frontend
 npx tsc --noEmit
 npm run lint
 npm run build
+
+# Desktop (Rust unit tests)
+cd desktop/src-tauri
+cargo test
 ```
 
 Or with Make:
@@ -352,6 +363,41 @@ See [`desktop/README.md`](desktop/README.md) for full build instructions.
 
 ---
 
+## Quick Analyze
+
+**Quick Analyze** is a four-stage guided workflow that takes you from a raw data file to a full econometric result — no statistics background required.
+
+**How to use:**
+1. On the home page, click **Analyse My Excel / CSV** (works in both desktop and browser)
+2. Upload a CSV or Excel file, optionally enter a research question
+3. Review the auto-generated plan (recommended model, dependent and independent variables)
+4. Confirm to run the analysis and read the plain-language summary
+
+**What it does automatically:**
+- Detects data structure (panel / cross-sectional / time-series)
+- Recommends an appropriate model (OLS, Fixed Effects, Random Effects, Log-OLS)
+- Generates a jargon-free plain-language interpretation
+- Computes diagnostics (VIF, Breusch-Pagan, Jarque-Bera)
+
+**Note:** Quick Analyze provides association analysis. For causal inference, use the Advanced Workflow (Projects).
+
+Full guide: [`docs/quick-analyze.md`](docs/quick-analyze.md)
+
+---
+
+## Interface Language (English / 中文)
+
+The UI ships with a built-in language switcher (🌐 button in the page header):
+
+- **English** and **Simplified Chinese (简体中文)** dictionaries
+- Choice persists across sessions (localStorage)
+- Browsers with a Chinese system language default to Chinese automatically
+- Works in both the web app and the Windows desktop app
+
+Implementation: client-side React context ([`frontend/lib/i18n.tsx`](frontend/lib/i18n.tsx)) — compatible with the static export required by the Tauri desktop build.
+
+---
+
 ## Current Limitations
 
 - Single-user, local SQLite storage — no multi-user or cloud sync
@@ -377,8 +423,9 @@ See [`desktop/README.md`](desktop/README.md) for full build instructions.
 | Phase 7 | Persistent research workspaces | Complete |
 | Phase 8 | Publication-ready reporting and academic export | Complete |
 | Phase 9 | Onboarding, one-click startup, documentation | Complete |
-| Phase 10 | Standalone Windows desktop application | In Progress |
-| Phase 11 | Advanced econometric models and causal workflows | Future |
+| Phase 10 | Standalone Windows desktop application | Complete |
+| Phase 11 | Quick Analyze, desktop polish, bilingual UI, documentation | In Progress |
+| Phase 12 | Advanced econometric models and causal workflows | Future |
 
 ---
 
