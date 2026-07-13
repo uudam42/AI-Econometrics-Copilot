@@ -31,6 +31,12 @@ def _build_overview(record) -> DatasetOverviewResponse:
     )
 
 
+@router.get("", response_model=list[dict])
+async def list_datasets() -> list[dict]:
+    """List all uploaded datasets, newest first."""
+    return dataset_repository.list_all()
+
+
 @router.post("/upload", response_model=DatasetOverviewResponse)
 async def upload_dataset(file: UploadFile = File(...)) -> DatasetOverviewResponse:
     content = await file.read()

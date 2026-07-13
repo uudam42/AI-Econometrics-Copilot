@@ -17,7 +17,7 @@ from typing import Any
 import pandas as pd
 from sqlalchemy import select, update, delete
 
-from app.core.config import settings
+import app.core.config as _config
 from app.core.errors import (
     DatasetNotFoundError,
     ModelNotFoundError,
@@ -314,7 +314,7 @@ class DatasetRepository:
 
         checksum = hashlib.sha256(original_path.read_bytes()).hexdigest()
 
-        storage_rel = str(original_path.relative_to(settings.upload_dir)) if _is_subpath(original_path, settings.upload_dir) else original_path.name
+        storage_rel = str(original_path.relative_to(_config.settings.upload_dir)) if _is_subpath(original_path, _config.settings.upload_dir) else original_path.name
 
         row = DatasetRow(
             id=dataset_id,
@@ -360,7 +360,7 @@ class DatasetRepository:
             if row is None:
                 raise DatasetNotFoundError(f"No dataset found with id '{dataset_id}'.")
 
-            stored_path = settings.upload_dir / row.storage_path
+            stored_path = _config.settings.upload_dir / row.storage_path
             if not stored_path.exists():
                 raise StorageError(
                     f"Dataset file missing from storage: '{row.storage_path}'.",
@@ -401,6 +401,24 @@ class DatasetRepository:
             return [
                 {
                     "dataset_id": r.id,
+                    "filename": r.filename,
+                    "n_rows": r.n_rows,
+                    "n_columns": r.n_columns,
+                    "uploaded_at": r.uploaded_at.isoformat() if r.uploaded_at else None,
+                    "checksum": r.checksum,
+                }
+                for r in rows
+            ]
+
+    def list_all(self) -> list[dict[str, Any]]:
+        with get_session() as session:
+            rows = session.execute(
+                select(DatasetRow).order_by(DatasetRow.uploaded_at.desc())
+            ).scalars().all()
+            return [
+                {
+                    "dataset_id": r.id,
+                    "project_id": r.project_id,
                     "filename": r.filename,
                     "n_rows": r.n_rows,
                     "n_columns": r.n_columns,
@@ -544,6 +562,31 @@ class AnalysisRepository:
                 return True
         with get_session() as session:
             return session.get(AnalysisRow, analysis_id) is not None
+
+    def list_all(self) -> list[dict[str, Any]]:
+        with get_session() as session:
+            rows = session.execute(
+                select(AnalysisRow).order_by(AnalysisRow.created_at.desc())
+            ).scalars().all()
+            summaries = []
+            for r in rows:
+                config = r.config_json or {}
+                result = r.result_json or {}
+                fit = result.get("fit") or {}
+                selection = config.get("variable_selection") or {}
+                summaries.append(
+                    {
+                        "analysis_id": r.id,
+                        "project_id": r.project_id,
+                        "dataset_id": r.dataset_id,
+                        "dataset_filename": r.dataset_filename,
+                        "model_type": config.get("model_type"),
+                        "dependent_variable": selection.get("dependent_variable"),
+                        "r_squared": fit.get("r_squared"),
+                        "created_at": r.created_at.isoformat() if r.created_at else None,
+                    }
+                )
+            return summaries
 
     def update_result(self, analysis_id: str, result, diagnostics) -> None:
         with get_session() as session:
@@ -790,6 +833,26 @@ class ReportRepository:
             with self._lock:
                 self._cache[report_id] = record
             return record
+
+    def list_all(self) -> list[dict[str, Any]]:
+        with get_session() as session:
+            rows = session.execute(
+                select(ReportRow).order_by(ReportRow.created_at.desc())
+            ).scalars().all()
+            summaries = []
+            for r in rows:
+                artifact = r.artifact_json or {}
+                summaries.append(
+                    {
+                        "report_id": r.id,
+                        "project_id": r.project_id,
+                        "source_type": r.source_type,
+                        "source_id": r.source_id,
+                        "title": artifact.get("title"),
+                        "created_at": r.created_at.isoformat() if r.created_at else None,
+                    }
+                )
+            return summaries
 
 
 # ---------------------------------------------------------------------------

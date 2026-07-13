@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiError, createDemoProject, getOnboardingStatus } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type { OnboardingStatus } from "@/types/onboarding";
 
 function ActionCard({
@@ -47,6 +49,7 @@ function ActionCard({
 }
 
 export default function Home() {
+  const { t } = useI18n();
   const [onboarding, setOnboarding] = useState<OnboardingStatus | null>(null);
   const [creatingDemo, setCreatingDemo] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
@@ -69,7 +72,7 @@ export default function Home() {
       setDemoError(
         err instanceof ApiError || err instanceof Error
           ? err.message
-          : "Could not create demo project."
+          : t("home.demo_error")
       );
       setCreatingDemo(false);
     }
@@ -81,15 +84,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-base font-semibold tracking-tight">
-              AI Econometrics Copilot
+              {t("app.title")}
             </h1>
-            <p className="text-xs text-muted">
-              Explainable, reproducible econometric analysis
-            </p>
+            <p className="text-xs text-muted">{t("app.tagline")}</p>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <Link href="/projects">
-              <Button variant="ghost">My Projects</Button>
+              <Button variant="ghost">{t("home.my_projects")}</Button>
             </Link>
           </div>
         </div>
@@ -99,36 +101,34 @@ export default function Home() {
         {/* Hero */}
         <div className="mb-10 text-center">
           <h2 className="text-2xl font-bold tracking-tight">
-            What would you like to do?
+            {t("home.hero")}
           </h2>
-          <p className="mt-2 text-sm text-muted">
-            Choose a path below — you can always switch to the full Research Workspace later.
-          </p>
+          <p className="mt-2 text-sm text-muted">{t("home.hero_sub")}</p>
         </div>
 
         {/* 3 large action cards */}
         <div className="mb-10 grid gap-4 sm:grid-cols-3">
           <ActionCard
             icon="📊"
-            title="Analyse My Excel / CSV"
-            description="Upload your file, answer one question, and get a plain-language result in under a minute."
+            title={t("home.card_quick_title")}
+            description={t("home.card_quick_desc")}
             href="/quick-analyze"
             primary
           />
           <ActionCard
             icon="🎓"
-            title="Try a Demo Dataset"
+            title={t("home.card_demo_title")}
             description={
               onboarding?.sample_data_available
-                ? "Load a sample World Bank panel dataset and explore the full workflow."
-                : "Demo data not available on this installation."
+                ? t("home.card_demo_desc")
+                : t("home.card_demo_unavailable")
             }
             onClick={onboarding?.sample_data_available ? handleDemo : undefined}
           />
           <ActionCard
             icon="📁"
-            title="Open Previous Project"
-            description="Return to a project you have already started and continue your research."
+            title={t("home.card_projects_title")}
+            description={t("home.card_projects_desc")}
             href="/projects"
           />
         </div>
@@ -139,7 +139,7 @@ export default function Home() {
           </p>
         )}
         {creatingDemo && (
-          <p className="mb-6 text-sm text-muted">Creating demo project…</p>
+          <p className="mb-6 text-sm text-muted">{t("home.creating_demo")}</p>
         )}
 
         {/* Advanced workflow divider */}
@@ -149,17 +149,17 @@ export default function Home() {
           </div>
           <div className="relative flex justify-center">
             <span className="bg-background px-3 text-xs text-muted">
-              Advanced workflow
+              {t("home.advanced")}
             </span>
           </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { href: "/datasets", label: "📂 All Datasets" },
-            { href: "/projects", label: "🗂 All Projects" },
-            { href: "/reports", label: "📄 Reports" },
-            { href: "/analyses", label: "🔬 Analyses" },
+            { href: "/datasets", label: t("home.link_datasets") },
+            { href: "/projects", label: t("home.link_projects") },
+            { href: "/reports", label: t("home.link_reports") },
+            { href: "/analyses", label: t("home.link_analyses") },
           ].map(({ href, label }) => (
             <Link key={href} href={href}>
               <div className="rounded-lg border border-border bg-surface px-4 py-3 text-center text-xs font-medium transition-colors hover:border-accent/50 hover:text-accent">
@@ -171,8 +171,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-border py-4 text-center text-xs text-muted">
-        Statistical associations only — not causal effects unless additional
-        identification assumptions are justified.
+        {t("home.footer")}
       </footer>
     </div>
   );

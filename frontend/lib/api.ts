@@ -505,3 +505,58 @@ export async function quickAnalyzeGetSession(
   if (!response.ok) await parseErrorOrThrow(response);
   return response.json();
 }
+
+// ---------------------------------------------------------------------------
+// Global index listings
+// ---------------------------------------------------------------------------
+
+export interface DatasetListItem {
+  dataset_id: string;
+  project_id: string | null;
+  filename: string;
+  n_rows: number | null;
+  n_columns: number | null;
+  uploaded_at: string | null;
+  checksum: string | null;
+}
+
+export interface AnalysisListItem {
+  analysis_id: string;
+  project_id: string | null;
+  dataset_id: string;
+  dataset_filename: string | null;
+  model_type: string | null;
+  dependent_variable: string | null;
+  r_squared: number | null;
+  created_at: string | null;
+}
+
+export interface ReportListItem {
+  report_id: string;
+  project_id: string | null;
+  source_type: string | null;
+  source_id: string | null;
+  title: string | null;
+  created_at: string | null;
+}
+
+export async function listAllDatasets(): Promise<DatasetListItem[]> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/datasets`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function listAllAnalyses(): Promise<AnalysisListItem[]> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/analyses`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}
+
+export async function listAllReports(): Promise<ReportListItem[]> {
+  const base = await resolveBaseUrl();
+  const response = await fetch(`${base}/reports`);
+  if (!response.ok) await parseErrorOrThrow(response);
+  return response.json();
+}

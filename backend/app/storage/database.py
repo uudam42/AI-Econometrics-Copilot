@@ -6,7 +6,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from app.core.config import settings
+import app.core.config as _config
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -21,7 +21,7 @@ _SessionLocal: sessionmaker[Session] | None = None
 
 
 def _get_db_path() -> Path:
-    url = settings.database_url
+    url = _config.settings.database_url
     if url.startswith("sqlite:///"):
         return Path(url.replace("sqlite:///", ""))
     return Path("data/ai_econometrics.db")
@@ -33,7 +33,7 @@ def get_engine():
         db_path = _get_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         _engine = create_engine(
-            settings.database_url,
+            _config.settings.database_url,
             connect_args={"check_same_thread": False},
             echo=False,
         )
@@ -65,15 +65,15 @@ def init_db() -> None:
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
 
-    settings.data_dir.mkdir(parents=True, exist_ok=True)
-    settings.upload_dir.mkdir(parents=True, exist_ok=True)
-    settings.artifact_dir.mkdir(parents=True, exist_ok=True)
+    _config.settings.data_dir.mkdir(parents=True, exist_ok=True)
+    _config.settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    _config.settings.artifact_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(
         "Database initialized at %s; upload_dir=%s, artifact_dir=%s",
         _get_db_path(),
-        settings.upload_dir,
-        settings.artifact_dir,
+        _config.settings.upload_dir,
+        _config.settings.artifact_dir,
     )
 
 

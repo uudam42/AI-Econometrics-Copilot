@@ -16,6 +16,12 @@ from app.schemas.reports import ReportArtifact, ReportGenerationRequest
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
+@router.get("", response_model=list[dict])
+async def list_reports() -> list[dict]:
+    """List all generated reports, newest first."""
+    return report_repository.list_all()
+
+
 @router.post("/generate", response_model=ReportArtifact)
 async def generate_report(req: ReportGenerationRequest) -> ReportArtifact:
     """Generate a research report from an existing analysis or comparison artifact."""

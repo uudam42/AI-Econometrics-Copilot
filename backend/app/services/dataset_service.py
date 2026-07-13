@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.core.config import settings
+import app.core.config as _config
 from app.core.errors import UnsupportedFileTypeError, ValidationAppError, FileTooLargeError
 from app.core.logging import get_logger
 from app.storage.repositories import DatasetRecord, dataset_repository
@@ -16,10 +16,10 @@ logger = get_logger(__name__)
 
 def _validate_extension(filename: str) -> str:
     suffix = Path(filename).suffix.lower()
-    if suffix not in settings.allowed_extensions:
+    if suffix not in _config.settings.allowed_extensions:
         raise UnsupportedFileTypeError(
             f"File type '{suffix}' is not supported. Allowed types: "
-            f"{', '.join(settings.allowed_extensions)}.",
+            f"{', '.join(_config.settings.allowed_extensions)}.",
             details={"filename": filename},
         )
     return suffix
@@ -57,17 +57,17 @@ def ingest_upload(
 
     suffix = _validate_extension(filename)
 
-    if len(content) > settings.max_upload_size_bytes:
+    if len(content) > _config.settings.max_upload_size_bytes:
         raise FileTooLargeError(
             f"File exceeds the maximum allowed size of "
-            f"{settings.max_upload_size_bytes // (1024 * 1024)} MB.",
+            f"{_config.settings.max_upload_size_bytes // (1024 * 1024)} MB.",
             details={"size_bytes": len(content)},
         )
     if len(content) == 0:
         raise ValidationAppError("Uploaded file is empty.")
 
     stored_name = f"{uuid.uuid4()}{suffix}"
-    stored_path = settings.upload_dir / stored_name
+    stored_path = _config.settings.upload_dir / stored_name
     stored_path.write_bytes(content)
 
     df = _parse_dataframe(stored_path, suffix)
@@ -89,6 +89,6 @@ def ingest_upload(
 
 
 def build_preview(df: pd.DataFrame, n_rows: int | None = None) -> list[dict]:
-    n = n_rows or settings.preview_row_count
+    n = n_rows or _config.settings.preview_row_count
     preview_df = df.head(n)
     return preview_df.astype(object).where(preview_df.notna(), None).to_dict(orient="records")
