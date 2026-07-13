@@ -6,6 +6,7 @@ use std::time::Duration;
 use serde::Serialize;
 use tauri::{Emitter, Manager, State};
 
+mod menu;
 mod sidecar;
 
 // ---------------------------------------------------------------------------
@@ -203,6 +204,16 @@ fn open_logs_folder(state: State<BackendState>) {
 }
 
 // ---------------------------------------------------------------------------
+// Tauri commands — application control
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn close_application(state: State<BackendState>) {
+    sidecar::stop_backend(&state.process);
+    std::process::exit(0);
+}
+
+// ---------------------------------------------------------------------------
 // Application entrypoint
 // ---------------------------------------------------------------------------
 
@@ -213,6 +224,38 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
+        .on_menu_event(|app, event| {
+            let id = event.id().0.as_str();
+            match id {
+                "open_data_folder" => {
+                    if let Some(state) = app.try_state::<BackendState>() {
+                        let data_dir = state.data_dir.lock().unwrap().clone();
+                        let _ = opener::open(data_dir);
+                    }
+                }
+                "open_exports_folder" => {
+                    if let Some(state) = app.try_state::<BackendState>() {
+                        let data_dir = state.data_dir.lock().unwrap().clone();
+                        let _ = opener::open(data_dir.join("exports"));
+                    }
+                }
+                "open_logs_folder" | "open_logs_folder_help" => {
+                    if let Some(state) = app.try_state::<BackendState>() {
+                        let data_dir = state.data_dir.lock().unwrap().clone();
+                        let _ = opener::open(data_dir.join("logs"));
+                    }
+                }
+                "app_exit" => {
+                    if let Some(state) = app.try_state::<BackendState>() {
+                        sidecar::stop_backend(&state.process);
+                    }
+                    std::process::exit(0);
+                }
+                other => {
+                    let _ = app.emit("menu_action", other.to_string());
+                }
+            }
+        })
         .setup(|app| {
             // Register both states up front so commands can always access them
             // without panicking, even before the backend is healthy.
@@ -225,6 +268,10 @@ pub fn run() {
                 port: Mutex::new(0),
                 data_dir: Mutex::new(PathBuf::new()),
             });
+
+            // Build and attach the application menu
+            let app_menu = menu::build_app_menu(app.handle())?;
+            app.set_menu(app_menu)?;
 
             let handle = app.handle().clone();
 
@@ -289,6 +336,7 @@ pub fn run() {
             open_data_folder,
             open_exports_folder,
             open_logs_folder,
+            close_application,
         ])
         .build(tauri::generate_context!())
         .expect("error while building application")

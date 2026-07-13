@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ApiError, uploadDataset } from "@/lib/api";
+import { isDesktopMode } from "@/lib/api-base";
 import type { DatasetOverview } from "@/types/dataset";
 
 interface UploadPanelProps {
@@ -14,7 +15,12 @@ const ACCEPTED_EXTENSIONS = [".csv", ".xlsx", ".xls"];
 export function UploadPanel({ onUploaded }: UploadPanelProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [desktop, setDesktop] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setDesktop(isDesktopMode());
+  }, []);
 
   async function handleFile(file: File) {
     setError(null);
@@ -35,6 +41,42 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
     }
   }
 
+  async function handleNativePicker() {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({
+        multiple: false,
+        filters: [
+          {
+            name: "Dataset",
+            extensions: ["csv", "xlsx", "xls"],
+          },
+        ],
+      });
+      if (!selected || typeof selected !== "string") return;
+
+      const { readFile } = await import("@tauri-apps/plugin-fs");
+      const bytes = await readFile(selected);
+      const filename = selected.replace(/\\/g, "/").split("/").pop() ?? "dataset";
+      const file = new File([bytes], filename);
+      await handleFile(file);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Could not open file picker.");
+      }
+    }
+  }
+
+  function handleChooseFile() {
+    if (desktop) {
+      void handleNativePicker();
+    } else {
+      inputRef.current?.click();
+    }
+  }
+
   return (
     <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center">
       <p className="text-sm font-medium text-foreground">
@@ -44,20 +86,22 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
         Supported formats: {ACCEPTED_EXTENSIONS.join(", ")}
       </p>
       <div className="mt-4 flex justify-center">
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPTED_EXTENSIONS.join(",")}
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void handleFile(file);
-          }}
-        />
+        {!desktop && (
+          <input
+            ref={inputRef}
+            type="file"
+            accept={ACCEPTED_EXTENSIONS.join(",")}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleFile(file);
+            }}
+          />
+        )}
         <Button
           type="button"
           disabled={isUploading}
-          onClick={() => inputRef.current?.click()}
+          onClick={handleChooseFile}
         >
           {isUploading ? "Uploading..." : "Choose file"}
         </Button>
