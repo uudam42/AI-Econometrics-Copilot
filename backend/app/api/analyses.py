@@ -18,6 +18,12 @@ from app.schemas.modeling import (
 router = APIRouter(prefix="/analyses", tags=["analyses"])
 
 
+@router.get("", response_model=list[dict])
+async def list_analyses() -> list[dict]:
+    """List all analyses, newest first."""
+    return analysis_repository.list_all()
+
+
 @router.post("/run", response_model=AnalysisResult)
 async def run_analysis_endpoint(
     config: AnalysisConfigurationRequest,

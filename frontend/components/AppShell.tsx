@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isDesktopMode } from "@/lib/api-base";
+import { I18nProvider } from "@/lib/i18n";
 import { DesktopStartupScreen } from "./DesktopStartupScreen";
 import { AboutDialog } from "./desktop/AboutDialog";
 
@@ -54,11 +55,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <I18nProvider>
       {children}
       {desktop && (
         <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
       )}
-    </>
+    </I18nProvider>
   );
 }

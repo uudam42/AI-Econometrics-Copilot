@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from app.analysis.econometric_rules import CAUSAL_LANGUAGE_DISCLAIMER
-from app.core.config import settings
+import app.core.config as _config
 from app.core.errors import ModelNotFoundError, ValidationAppError
 from app.reports.academic_tables import (
     comparison_table_md,
@@ -55,7 +55,7 @@ from app.storage.repositories import (
 
 
 def _export_dir(export_id: str) -> Path:
-    d = settings.artifact_dir / "publication_exports" / export_id
+    d = _config.settings.artifact_dir / "publication_exports" / export_id
     d.mkdir(parents=True, exist_ok=True)
     return d
 
