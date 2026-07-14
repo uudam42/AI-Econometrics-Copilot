@@ -1,10 +1,6 @@
 name: Build Windows Desktop
 
 on:
-  push:
-    branches:
-      - feature/standalone-windows-desktop
-      - feature/zero-config-desktop-release
   workflow_dispatch:
     inputs:
       publish_release:
@@ -15,6 +11,14 @@ on:
         options:
           - "false"
           - "true"
+      release_tag:
+        description: "Release tag (e.g. v0.2.0). Required if publish_release is true."
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   build-windows:
@@ -109,20 +113,27 @@ jobs:
           cd desktop\src-tauri
           tauri build
 
-      - name: Generate SHA256 checksums
+      - name: Collect release artifacts
+        id: artifacts
         run: |
           $outDir = "desktop\src-tauri\target\release\bundle"
+          $staging = "release-artifacts"
+          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+
           $artifacts = @()
           $artifacts += Get-ChildItem "$outDir\msi\*.msi" -ErrorAction SilentlyContinue
           $artifacts += Get-ChildItem "$outDir\nsis\*.exe" -ErrorAction SilentlyContinue
+
           foreach ($file in $artifacts) {
+            Copy-Item $file.FullName $staging
             $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()
-            "$hash  $($file.Name)" | Out-File -Append "$outDir\checksums.sha256" -Encoding utf8
+            "$hash  $($file.Name)" | Out-File -Append "$staging\SHA256SUMS.txt" -Encoding utf8
             Write-Host "SHA256($($file.Name)) = $hash"
           }
-          if (Test-Path "$outDir\checksums.sha256") {
-            Write-Host "--- checksums.sha256 ---"
-            Get-Content "$outDir\checksums.sha256"
+
+          if (Test-Path "$staging\SHA256SUMS.txt") {
+            Write-Host "--- SHA256SUMS.txt ---"
+            Get-Content "$staging\SHA256SUMS.txt"
           }
         shell: pwsh
 
@@ -130,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi-installer
-          path: desktop/src-tauri/target/release/bundle/msi/*.msi
+          path: release-artifacts/*.msi
           if-no-files-found: warn
           retention-days: 30
 
@@ -138,7 +149,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-nsis-installer
-          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          path: release-artifacts/*.exe
           if-no-files-found: warn
           retention-days: 30
 
@@ -146,6 +157,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: checksums
-          path: desktop/src-tauri/target/release/bundle/checksums.sha256
+          path: release-artifacts/SHA256SUMS.txt
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Create GitHub Release
+        if: inputs.publish_release == 'true' && inputs.release_tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: AI Econometrics Copilot ${{ inputs.release_tag }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            release-artifacts/*.msi
+            release-artifacts/*.exe
+            release-artifacts/SHA256SUMS.txt

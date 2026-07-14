@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { createDemoProject, listProjects } from "@/lib/api";
 import type { ProjectResponse } from "@/types/project";
 
 export default function ProjectsPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -38,18 +41,17 @@ export default function ProjectsPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-base font-semibold tracking-tight">
-              Research Projects
+              {t("projects.title")}
             </h1>
-            <p className="text-xs text-muted">
-              Persistent workspaces for reproducible econometric research
-            </p>
+            <p className="text-xs text-muted">{t("projects.subtitle")}</p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link href="/">
-              <Button variant="ghost">Home</Button>
+              <Button variant="ghost">{t("common.home")}</Button>
             </Link>
             <Link href="/projects/new">
-              <Button>New Project</Button>
+              <Button>{t("projects.new")}</Button>
             </Link>
           </div>
         </div>
@@ -58,7 +60,7 @@ export default function ProjectsPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted">
-            {projects.length} project{projects.length !== 1 ? "s" : ""}
+            {projects.length} {projects.length === 1 ? t("projects.count_one") : t("projects.count_other")}
           </p>
           <label className="flex items-center gap-1.5 text-xs text-muted">
             <input
@@ -67,27 +69,26 @@ export default function ProjectsPage() {
               onChange={(e) => setShowArchived(e.target.checked)}
               className="rounded"
             />
-            Show archived
+            {t("projects.show_archived")}
           </label>
         </div>
 
         {loading ? (
           <p className="py-10 text-center text-sm text-muted">
-            Loading projects...
+            {t("projects.loading")}
           </p>
         ) : projects.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="mb-2 text-sm font-medium">No projects yet</p>
+            <p className="mb-2 text-sm font-medium">{t("projects.empty_title")}</p>
             <p className="mb-6 text-sm text-muted max-w-md mx-auto">
-              Create a new project to start organizing your research, or try the
-              sample dataset to explore the platform.
+              {t("projects.empty_desc")}
             </p>
             <div className="flex justify-center gap-3">
               <Button onClick={handleStartDemo} disabled={creatingDemo}>
-                {creatingDemo ? "Creating..." : "Try Sample Dataset"}
+                {creatingDemo ? t("projects.creating") : t("projects.try_sample")}
               </Button>
               <Link href="/projects/new">
-                <Button variant="secondary">Create New Project</Button>
+                <Button variant="secondary">{t("projects.create_new")}</Button>
               </Link>
             </div>
           </div>

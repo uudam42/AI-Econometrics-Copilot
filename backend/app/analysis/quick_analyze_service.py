@@ -221,6 +221,8 @@ def _build_recommendation(
         outcome_variable=dep or "(not detected — please select)",
         main_variable=primary or "(not detected — please select)",
         control_variables=controls,
+        entity_column=entity,
+        time_column=time,
         detected_structure=plan.detected_structure_summary,
         recommended_model=model_labels.get(rec.recommended_model, rec.recommended_model),
         recommended_model_type=rec.recommended_model,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 type StartupStatus =
   | "starting"
@@ -30,6 +31,7 @@ export function DesktopStartupScreen({
 }: {
   onReady: () => void;
 }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<StartupStatus>("starting");
   const [message, setMessage] = useState("Preparing local workspace…");
   const [showRetry, setShowRetry] = useState(false);
@@ -196,7 +198,7 @@ export function DesktopStartupScreen({
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
       <div className="w-full max-w-sm space-y-8 text-center">
         <div>
-          <h1 className="text-xl font-semibold">AI Econometrics Copilot</h1>
+          <h1 className="text-xl font-semibold">{t("app.title")}</h1>
           <p className="mt-1 text-xs text-muted">Desktop Edition</p>
         </div>
 
@@ -245,13 +247,13 @@ export function DesktopStartupScreen({
                 onClick={handleCopyTechnicalDetails}
                 className="rounded-md border border-red-300 px-4 py-2 text-xs text-red-700 hover:bg-red-100"
               >
-                {copied ? "Copied!" : "Copy Technical Details"}
+                {copied ? t("desktop.copied") : t("desktop.copy_diagnostics")}
               </button>
               <button
                 onClick={handleCloseApplication}
                 className="rounded-md border border-red-200 px-4 py-2 text-xs text-red-500 hover:bg-red-50"
               >
-                Close Application
+                {t("desktop.close_app")}
               </button>
             </div>
           </div>
