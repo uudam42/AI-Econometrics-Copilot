@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 import {
   ApiError,
   getDatasetOverview,
@@ -12,6 +14,7 @@ import {
   quickAnalyzePlan,
   quickAnalyzeUpload,
 } from "@/lib/api";
+import type { I18nError } from "@/lib/api";
 import type {
   BeginnerSummary,
   ConfirmationRequest,
@@ -31,10 +34,11 @@ type Stage = "upload" | "planning" | "review" | "running" | "results" | "error";
 // ---------------------------------------------------------------------------
 
 function StepIndicator({ current }: { current: Stage }) {
+  const { t } = useI18n();
   const steps: { key: Stage; label: string }[] = [
-    { key: "upload", label: "Upload" },
-    { key: "review", label: "Review" },
-    { key: "results", label: "Results" },
+    { key: "upload", label: t("qa.step_upload") },
+    { key: "review", label: t("qa.step_review") },
+    { key: "results", label: t("qa.step_results") },
   ];
   const order: Stage[] = ["upload", "planning", "review", "running", "results", "error"];
   const idx = order.indexOf(current);
@@ -67,13 +71,14 @@ function StepIndicator({ current }: { current: Stage }) {
 }
 
 function DiagnosticsGrid({ d }: { d: DiagnosticsStatusCard }) {
+  const { t } = useI18n();
   const items = [
-    { label: "Data quality", value: d.data_quality, bad: d.data_quality === "Needs review" },
-    { label: "Model fit", value: d.model_fit, bad: d.model_fit === "Limited" },
-    { label: "Multicollinearity", value: d.multicollinearity, bad: d.multicollinearity !== "Low concern" },
-    { label: "Heteroskedasticity", value: d.heteroskedasticity, bad: d.heteroskedasticity.startsWith("Detected") },
-    { label: "Panel structure", value: d.panel_structure, bad: false },
-    { label: "Causal interpretation", value: d.causal_interpretation, bad: false },
+    { label: t("diag.data_quality"), value: d.data_quality, bad: d.data_quality === "Needs review" },
+    { label: t("diag.model_fit"), value: d.model_fit, bad: d.model_fit === "Limited" },
+    { label: t("diag.multicollinearity"), value: d.multicollinearity, bad: d.multicollinearity !== "Low concern" },
+    { label: t("diag.heteroskedasticity"), value: d.heteroskedasticity, bad: d.heteroskedasticity.startsWith("Detected") },
+    { label: t("diag.panel_structure"), value: d.panel_structure, bad: false },
+    { label: t("diag.causal_interpretation"), value: d.causal_interpretation, bad: false },
   ];
   return (
     <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
@@ -98,6 +103,7 @@ function UploadStage({
 }: {
   onUploaded: (up: QuickAnalyzeUploadResponse, question: string) => void;
 }) {
+  const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [question, setQuestion] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -120,10 +126,12 @@ function UploadStage({
       const result = await quickAnalyzeUpload(file, question || undefined);
       onUploaded(result, question);
     } catch (err) {
+      const key = (err as I18nError)?.i18nKey;
       setError(
-        err instanceof ApiError || err instanceof Error
-          ? err.message
-          : "Upload failed. Please try again."
+        key ? t(key)
+          : err instanceof ApiError || err instanceof Error
+            ? err.message
+            : t("error.upload_failed")
       );
     } finally {
       setUploading(false);
@@ -133,14 +141,10 @@ function UploadStage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Upload Your Data</h2>
-        <p className="mt-1 text-sm text-muted">
-          Upload an Excel (.xlsx, .xls) or CSV file. We will automatically detect the
-          structure and suggest the right model.
-        </p>
+        <h2 className="text-lg font-semibold">{t("qa.upload_title")}</h2>
+        <p className="mt-1 text-sm text-muted">{t("qa.upload_desc")}</p>
       </div>
 
-      {/* Drop zone */}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
@@ -161,41 +165,38 @@ function UploadStage({
           <p className="text-sm font-medium">{file.name}</p>
         ) : (
           <>
-            <p className="text-sm font-medium">Drop file here or click to browse</p>
-            <p className="mt-1 text-xs text-muted">Excel or CSV</p>
+            <p className="text-sm font-medium">{t("qa.drop_zone")}</p>
+            <p className="mt-1 text-xs text-muted">{t("qa.drop_zone_hint")}</p>
           </>
         )}
       </div>
 
-      {/* Optional question */}
       <div>
         <label className="mb-1 block text-sm font-medium">
-          Research question{" "}
-          <span className="font-normal text-muted">(optional)</span>
+          {t("qa.question_label")}{" "}
+          <span className="font-normal text-muted">{t("qa.question_optional")}</span>
         </label>
         <input
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="e.g. Does education affect income?"
+          placeholder={t("qa.question_placeholder")}
           className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
         />
-        <p className="mt-1 text-xs text-muted">
-          Leave blank for an exploratory overview of your dataset.
-        </p>
+        <p className="mt-1 text-xs text-muted">{t("qa.question_hint")}</p>
       </div>
 
       {error && <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <Button onClick={handleSubmit} disabled={!file || uploading} className="w-full sm:w-auto">
-        {uploading ? "Uploading…" : "Continue →"}
+        {uploading ? t("qa.uploading") : t("qa.continue")}
       </Button>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Review stage — recommendation card + confirmation form
+// Review stage
 // ---------------------------------------------------------------------------
 
 function ReviewStage({
@@ -209,6 +210,7 @@ function ReviewStage({
   datasetColumns: string[];
   onConfirmed: (summary: import("@/types/quick_analyze").QuickAnalyzeRunResponse) => void;
 }) {
+  const { t } = useI18n();
   const [dep, setDep] = useState(
     rec.outcome_variable.startsWith("(") ? "" : rec.outcome_variable
   );
@@ -243,8 +245,8 @@ function ReviewStage({
       dependent_variable: dep,
       primary_independent_variable: primary,
       control_variables: controls,
-      entity_column: null,
-      time_column: null,
+      entity_column: rec.entity_column ?? null,
+      time_column: rec.time_column ?? null,
       model_type: modelType,
       apply_log_transform_to: logTransform,
       analysis_intent: "association",
@@ -253,10 +255,12 @@ function ReviewStage({
       const result = await quickAnalyzeConfirm(sessionId, body);
       onConfirmed(result);
     } catch (err) {
+      const key = (err as I18nError)?.i18nKey;
       setError(
-        err instanceof ApiError || err instanceof Error
-          ? err.message
-          : "Analysis failed. Check variable selection and try again."
+        key ? t(key)
+          : err instanceof ApiError || err instanceof Error
+            ? err.message
+            : t("error.model_failed")
       );
     } finally {
       setRunning(false);
@@ -264,31 +268,27 @@ function ReviewStage({
   }
 
   const modelOptions = [
-    { value: "ols", label: "OLS Regression" },
-    { value: "robust_ols", label: "Robust OLS" },
-    { value: "pooled_ols", label: "Pooled OLS" },
-    { value: "fixed_effects", label: "Fixed Effects" },
-    { value: "random_effects", label: "Random Effects" },
-    { value: "two_way_fixed_effects", label: "Two-Way Fixed Effects" },
+    { value: "ols", label: t("model.ols") },
+    { value: "robust_ols", label: t("model.robust_ols") },
+    { value: "pooled_ols", label: t("model.pooled_ols") },
+    { value: "fixed_effects", label: t("model.fixed_effects") },
+    { value: "random_effects", label: t("model.random_effects") },
+    { value: "two_way_fixed_effects", label: t("model.two_way_fe") },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Review Recommendation</h2>
-        <p className="mt-1 text-sm text-muted">
-          We analysed your dataset and suggest the setup below. Review and confirm before
-          running — you can change any field.
-        </p>
+        <h2 className="text-lg font-semibold">{t("qa.review_title")}</h2>
+        <p className="mt-1 text-sm text-muted">{t("qa.review_desc")}</p>
       </div>
 
-      {/* Why this model */}
       <Card>
         <CardHeader>
-          <CardTitle>Recommended: {rec.recommended_model}</CardTitle>
+          <CardTitle>{t("qa.recommended")}: {rec.recommended_model}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="text-xs text-muted">Detected structure: {rec.detected_structure}</p>
+          <p className="text-xs text-muted">{t("qa.detected_structure")}: {rec.detected_structure}</p>
           <ul className="space-y-1">
             {rec.why_reasons.map((r, i) => (
               <li key={i} className="text-xs">• {r}</li>
@@ -304,26 +304,25 @@ function ReviewStage({
         </CardContent>
       </Card>
 
-      {/* Variable selection */}
       <Card>
-        <CardHeader><CardTitle>Variable Selection</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("qa.var_selection")}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-medium">
-                Outcome variable <span className="text-red-500">*</span>
+                {t("qa.outcome_var")} <span className="text-red-500">{t("qa.required")}</span>
               </label>
               <Select value={dep} onChange={(e) => setDep(e.target.value)} required>
-                <option value="">— select —</option>
+                <option value="">{t("qa.select_placeholder")}</option>
                 {colOptions.map((c) => <option key={c} value={c}>{c}</option>)}
               </Select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium">
-                Main explanatory variable <span className="text-red-500">*</span>
+                {t("qa.main_expl_var")} <span className="text-red-500">{t("qa.required")}</span>
               </label>
               <Select value={primary} onChange={(e) => setPrimary(e.target.value)} required>
-                <option value="">— select —</option>
+                <option value="">{t("qa.select_placeholder")}</option>
                 {colOptions.map((c) => <option key={c} value={c}>{c}</option>)}
               </Select>
             </div>
@@ -331,7 +330,7 @@ function ReviewStage({
 
           {colOptions.length > 0 && (
             <div>
-              <label className="mb-1 block text-xs font-medium">Control variables</label>
+              <label className="mb-1 block text-xs font-medium">{t("qa.control_vars")}</label>
               <div className="flex flex-wrap gap-2">
                 {colOptions
                   .filter((c) => c !== dep && c !== primary)
@@ -354,7 +353,7 @@ function ReviewStage({
           )}
 
           <div>
-            <label className="mb-1 block text-xs font-medium">Model</label>
+            <label className="mb-1 block text-xs font-medium">{t("qa.model")}</label>
             <Select value={modelType} onChange={(e) => setModelType(e.target.value)}>
               {modelOptions.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -364,9 +363,7 @@ function ReviewStage({
 
           {rec.transformation_suggestions.length > 0 && (
             <div>
-              <label className="mb-1 block text-xs font-medium">
-                Optional log-transformations
-              </label>
+              <label className="mb-1 block text-xs font-medium">{t("qa.optional_log")}</label>
               <div className="space-y-1">
                 {rec.transformation_suggestions.map((hint, i) => {
                   const col = hint.match(/'([^']+)'/)?.[1];
@@ -396,11 +393,8 @@ function ReviewStage({
       )}
 
       <div className="flex gap-3">
-        <Button
-          onClick={handleRun}
-          disabled={!dep || !primary || running}
-        >
-          {running ? "Running model…" : "Run Analysis →"}
+        <Button onClick={handleRun} disabled={!dep || !primary || running}>
+          {running ? t("qa.running_model") : t("qa.run_analysis")}
         </Button>
       </div>
     </div>
@@ -418,6 +412,7 @@ function ResultsStage({
   summary: BeginnerSummary;
   analysisId: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <div>
@@ -425,11 +420,10 @@ function ResultsStage({
         <p className="mt-1 text-sm text-muted">{summary.dataset_description}</p>
       </div>
 
-      {/* Main finding */}
       <Card>
         <CardHeader>
           <CardTitle>
-            {summary.is_significant ? "Association Found" : "No Clear Association"}
+            {summary.is_significant ? t("qa.association_found") : t("qa.no_association")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -438,33 +432,29 @@ function ResultsStage({
         </CardContent>
       </Card>
 
-      {/* Diagnostics */}
       <Card>
-        <CardHeader><CardTitle>Diagnostics Overview</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("qa.diagnostics_overview")}</CardTitle></CardHeader>
         <CardContent>
           <DiagnosticsGrid d={summary.diagnostics_status} />
         </CardContent>
       </Card>
 
-      {/* Warnings */}
       {summary.key_warnings.length > 0 && (
         <div className="space-y-1 rounded border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-xs font-medium text-amber-700">Warnings</p>
+          <p className="text-xs font-medium text-amber-700">{t("qa.warnings")}</p>
           {summary.key_warnings.map((w, i) => (
             <p key={i} className="text-xs text-amber-700">⚠ {w}</p>
           ))}
         </div>
       )}
 
-      {/* Causal warning — always shown */}
       <div className="rounded border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-700">
-        <span className="font-medium">Note: </span>
+        <span className="font-medium">{t("qa.causal_note_label")}</span>
         {summary.causal_warning}
       </div>
 
-      {/* Next actions */}
       <Card>
-        <CardHeader><CardTitle>What to do next</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("qa.next_actions")}</CardTitle></CardHeader>
         <CardContent>
           <ul className="space-y-2">
             {summary.next_actions.map((a, i) => (
@@ -476,13 +466,13 @@ function ResultsStage({
 
       <div className="flex flex-wrap gap-3">
         <Link href={`/analyses/${analysisId}`}>
-          <Button>Open Full Workspace →</Button>
+          <Button>{t("qa.open_workspace")}</Button>
         </Link>
         <Link href="/quick-analyze">
-          <Button variant="secondary">Start New Analysis</Button>
+          <Button variant="secondary">{t("qa.start_new")}</Button>
         </Link>
         <Link href="/projects">
-          <Button variant="ghost">My Projects</Button>
+          <Button variant="ghost">{t("qa.my_projects")}</Button>
         </Link>
       </div>
     </div>
@@ -494,6 +484,7 @@ function ResultsStage({
 // ---------------------------------------------------------------------------
 
 export default function QuickAnalyzePage() {
+  const { t } = useI18n();
   const [stage, setStage] = useState<Stage>("upload");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [uploadInfo, setUploadInfo] = useState<QuickAnalyzeUploadResponse | null>(null);
@@ -519,15 +510,17 @@ export default function QuickAnalyzePage() {
         setPlanResp(plan);
         setStage("review");
       } catch (err) {
+        const key = (err as I18nError)?.i18nKey;
         setErrorMsg(
-          err instanceof ApiError || err instanceof Error
-            ? err.message
-            : "Planning failed. Please try again."
+          key ? t(key)
+            : err instanceof ApiError || err instanceof Error
+              ? err.message
+              : t("error.unexpected")
         );
         setStage("error");
       }
     },
-    []
+    [t]
   );
 
   const handleConfirmed = useCallback(
@@ -540,16 +533,18 @@ export default function QuickAnalyzePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <div>
             <Link href="/" className="text-sm font-semibold hover:text-accent">
-              ← AI Econometrics Copilot
+              {t("common.back_home")}
             </Link>
-            <p className="text-xs text-muted">Quick Analyze</p>
+            <p className="text-xs text-muted">{t("qa.title")}</p>
           </div>
-          <StepIndicator current={stage} />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <StepIndicator current={stage} />
+          </div>
         </div>
       </header>
 
@@ -560,16 +555,13 @@ export default function QuickAnalyzePage() {
 
         {stage === "planning" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Analysing Your Data…</h2>
-            <p className="text-sm text-muted">
-              We are profiling the dataset and detecting its structure. This usually takes
-              a few seconds.
-            </p>
+            <h2 className="text-lg font-semibold">{t("qa.analysing_title")}</h2>
+            <p className="text-sm text-muted">{t("qa.analysing_desc")}</p>
             <div className="flex items-center gap-2 text-sm text-muted">
               <span className="animate-pulse">●</span>
               {uploadInfo
-                ? `Processing ${uploadInfo.filename} (${uploadInfo.n_rows} rows, ${uploadInfo.n_columns} columns)`
-                : "Processing…"}
+                ? `${uploadInfo.filename} (${uploadInfo.n_rows} ${t("common.rows")}, ${uploadInfo.n_columns} ${t("common.columns")})`
+                : t("qa.processing")}
             </div>
           </div>
         )}
@@ -585,10 +577,10 @@ export default function QuickAnalyzePage() {
 
         {stage === "running" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Running Model…</h2>
+            <h2 className="text-lg font-semibold">{t("qa.fitting_model")}</h2>
             <div className="flex items-center gap-2 text-sm text-muted">
               <span className="animate-pulse">●</span>
-              Fitting the econometric model and computing diagnostics…
+              {t("qa.fitting_desc")}
             </div>
           </div>
         )}
@@ -599,17 +591,17 @@ export default function QuickAnalyzePage() {
 
         {stage === "error" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-red-600">Something went wrong</h2>
-            <p className="text-sm">{errorMsg ?? "An unexpected error occurred."}</p>
+            <h2 className="text-lg font-semibold text-red-600">{t("qa.error_title")}</h2>
+            <p className="text-sm">{errorMsg ?? t("error.unexpected")}</p>
             <Button onClick={() => { setStage("upload"); setSessionId(null); setPlanResp(null); setErrorMsg(null); }}>
-              Start Over
+              {t("qa.start_over")}
             </Button>
           </div>
         )}
       </main>
 
       <footer className="border-t border-border py-4 text-center text-xs text-muted">
-        This analysis identifies statistical associations only — not causal effects.
+        {t("qa.footer")}
       </footer>
     </div>
   );

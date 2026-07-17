@@ -257,3 +257,90 @@ def test_plan_exploratory_succeeds(client: TestClient):
     resp = client.post(f"/api/quick-analyze/{sid}/plan")
     assert resp.status_code == 200
     assert resp.json()["stage"] == "awaiting_confirmation"
+
+
+# ---------------------------------------------------------------------------
+# Panel model — entity/time columns returned in recommendation
+# ---------------------------------------------------------------------------
+
+def _panel_df(seed: int = 99) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    rows = []
+    for entity in ["A", "B", "C", "D", "E"]:
+        for year in range(2000, 2010):
+            rows.append({
+                "entity": entity,
+                "year": year,
+                "gdp": rng.normal(50000, 10000),
+                "trade": rng.normal(50, 15),
+                "pop": rng.normal(1e6, 2e5),
+            })
+    return pd.DataFrame(rows)
+
+
+def test_plan_returns_entity_and_time_columns(client: TestClient):
+    df = _panel_df()
+    sid, rec = _upload_and_plan(client, df, "Does trade affect GDP?")
+    assert rec.get("entity_column") is not None
+    assert rec.get("time_column") is not None
+
+
+def test_confirm_panel_model_with_entity_time(client: TestClient):
+    df = _panel_df()
+    sid, rec = _upload_and_plan(client, df, "Does trade affect GDP?")
+    body = {
+        "dependent_variable": "gdp",
+        "primary_independent_variable": "trade",
+        "control_variables": [],
+        "entity_column": rec.get("entity_column"),
+        "time_column": rec.get("time_column"),
+        "model_type": rec["recommended_model_type"],
+        "apply_log_transform_to": [],
+        "analysis_intent": "association",
+    }
+    resp = client.post(f"/api/quick-analyze/{sid}/confirm", json=body)
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["stage"] == "complete"
+
+
+def test_confirm_panel_model_without_entity_returns_error(client: TestClient):
+    df = _panel_df()
+    sid, rec = _upload_and_plan(client, df, "Does trade affect GDP?")
+    body = {
+        "dependent_variable": "gdp",
+        "primary_independent_variable": "trade",
+        "control_variables": [],
+        "entity_column": None,
+        "time_column": None,
+        "model_type": "fixed_effects",
+        "apply_log_transform_to": [],
+        "analysis_intent": "association",
+    }
+    resp = client.post(f"/api/quick-analyze/{sid}/confirm", json=body)
+    assert resp.status_code in (400, 422)
+    assert "error" in resp.json()
+
+
+def test_confirm_unknown_session_returns_error(client: TestClient):
+    body = {
+        "dependent_variable": "y",
+        "primary_independent_variable": "x",
+        "control_variables": [],
+        "entity_column": None,
+        "time_column": None,
+        "model_type": "ols",
+        "apply_log_transform_to": [],
+        "analysis_intent": "association",
+    }
+    resp = client.post("/api/quick-analyze/bogus-session/confirm", json=body)
+    assert resp.status_code in (404, 422, 500)
+
+
+def test_quick_analyze_routes_exist(client: TestClient):
+    resp = client.get("/openapi.json")
+    assert resp.status_code == 200
+    paths = list(resp.json()["paths"].keys())
+    assert "/api/quick-analyze/upload" in paths
+    assert "/api/quick-analyze/{session_id}/plan" in paths
+    assert "/api/quick-analyze/{session_id}/confirm" in paths
+    assert "/api/quick-analyze/{session_id}" in paths

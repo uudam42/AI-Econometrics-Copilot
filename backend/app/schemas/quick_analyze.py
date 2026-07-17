@@ -42,6 +42,8 @@ class RecommendationCard(BaseModel):
     outcome_variable: str
     main_variable: str
     control_variables: list[str] = Field(default_factory=list)
+    entity_column: str | None = None
+    time_column: str | None = None
     detected_structure: str
     recommended_model: str
     recommended_model_type: str

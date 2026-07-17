@@ -49,6 +49,26 @@ async function parseErrorOrThrow(response: Response): Promise<never> {
   throw new Error(`Request failed with status ${response.status}`);
 }
 
+export interface I18nError extends Error {
+  i18nKey?: string;
+}
+
+function wrapFetchError(err: unknown): I18nError {
+  if (err instanceof ApiError || err instanceof Error) {
+    if (err instanceof TypeError && err.message === "Failed to fetch") {
+      const e: I18nError = new Error(
+        "The analysis engine is not reachable. Please check whether the backend is running."
+      );
+      e.i18nKey = "error.backend_unreachable";
+      return e;
+    }
+    return err;
+  }
+  const e: I18nError = new Error("An unexpected error occurred.");
+  e.i18nKey = "error.unexpected";
+  return e;
+}
+
 export async function uploadDataset(file: File): Promise<DatasetOverview> {
   const formData = new FormData();
   formData.append("file", file);
@@ -463,47 +483,63 @@ export async function quickAnalyzeUpload(
   if (researchQuestion) formData.append("research_question", researchQuestion);
   formData.append("analysis_intent", analysisIntent);
 
-  const base = await resolveBaseUrl();
-  const response = await fetch(`${base}/quick-analyze/upload`, {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) await parseErrorOrThrow(response);
-  return response.json();
+  try {
+    const base = await resolveBaseUrl();
+    const response = await fetch(`${base}/quick-analyze/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) await parseErrorOrThrow(response);
+    return response.json();
+  } catch (err) {
+    throw wrapFetchError(err);
+  }
 }
 
 export async function quickAnalyzePlan(
   sessionId: string
 ): Promise<import("@/types/quick_analyze").QuickAnalyzePlanResponse> {
-  const base = await resolveBaseUrl();
-  const response = await fetch(`${base}/quick-analyze/${sessionId}/plan`, {
-    method: "POST",
-  });
-  if (!response.ok) await parseErrorOrThrow(response);
-  return response.json();
+  try {
+    const base = await resolveBaseUrl();
+    const response = await fetch(`${base}/quick-analyze/${sessionId}/plan`, {
+      method: "POST",
+    });
+    if (!response.ok) await parseErrorOrThrow(response);
+    return response.json();
+  } catch (err) {
+    throw wrapFetchError(err);
+  }
 }
 
 export async function quickAnalyzeConfirm(
   sessionId: string,
   body: import("@/types/quick_analyze").ConfirmationRequest
 ): Promise<import("@/types/quick_analyze").QuickAnalyzeRunResponse> {
-  const base = await resolveBaseUrl();
-  const response = await fetch(`${base}/quick-analyze/${sessionId}/confirm`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) await parseErrorOrThrow(response);
-  return response.json();
+  try {
+    const base = await resolveBaseUrl();
+    const response = await fetch(`${base}/quick-analyze/${sessionId}/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) await parseErrorOrThrow(response);
+    return response.json();
+  } catch (err) {
+    throw wrapFetchError(err);
+  }
 }
 
 export async function quickAnalyzeGetSession(
   sessionId: string
 ): Promise<import("@/types/quick_analyze").QuickAnalyzeSessionDetail> {
-  const base = await resolveBaseUrl();
-  const response = await fetch(`${base}/quick-analyze/${sessionId}`);
-  if (!response.ok) await parseErrorOrThrow(response);
-  return response.json();
+  try {
+    const base = await resolveBaseUrl();
+    const response = await fetch(`${base}/quick-analyze/${sessionId}`);
+    if (!response.ok) await parseErrorOrThrow(response);
+    return response.json();
+  } catch (err) {
+    throw wrapFetchError(err);
+  }
 }
 
 // ---------------------------------------------------------------------------

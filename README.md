@@ -12,9 +12,21 @@ AI understands and recommends — Python statistical libraries do all real compu
 
 ---
 
-## Quick Start
+## Getting Started
 
-### One-Command Docker
+### Option 1 — Windows Desktop (easiest)
+
+Download the installer from [Releases](https://github.com/uudam42/AI-Econometrics-Copilot/releases) → install → open → click **Analyse My Excel / CSV**.
+
+Or use the one-line PowerShell downloader:
+
+```powershell
+irm https://raw.githubusercontent.com/uudam42/AI-Econometrics-Copilot/main/installer_downloader/downloader.ps1 | iex
+```
+
+No Docker, Python, Node.js, or browser required. All data stays on the local computer.
+
+### Option 2 — Docker (cross-platform)
 
 ```bash
 docker compose up --build
@@ -28,7 +40,7 @@ Data persists in a named Docker volume (`ai_econometrics_data`). To reset:
 docker compose down -v
 ```
 
-### Local Development
+### Option 3 — Local Development
 
 ```bash
 bash scripts/start-local.sh       # macOS / Linux
@@ -43,7 +55,8 @@ make stop     # stop both services
 make test     # run backend tests + frontend lint + typecheck
 ```
 
-### Manual Setup
+<details>
+<summary>Manual setup (backend + frontend separately)</summary>
 
 **Backend:**
 ```bash
@@ -62,6 +75,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+</details>
+
+> For non-technical users, use the Windows installer or downloader.
+> Docker and source-code setup are intended for developers.
 
 ---
 
@@ -165,7 +182,7 @@ ai-econometrics-copilot/
 │   │   ├── schemas/        # Pydantic models
 │   │   ├── services/       # profiling, structure detection, transformations
 │   │   └── storage/        # SQLite models, repositories, database engine
-│   ├── tests/              # 305 tests
+│   ├── tests/              # 310 tests
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
@@ -178,6 +195,7 @@ ai-econometrics-copilot/
 ├── desktop/
 │   ├── scripts/            # PowerShell / batch build helpers
 │   └── src-tauri/          # Tauri 2.x Rust shell (menu, sidecar lifecycle, IPC)
+├── installer_downloader/   # One-line PowerShell installer downloader
 ├── sample_data/            # World Bank panel sample dataset
 ├── scripts/                # start, stop, reset scripts (sh + ps1)
 ├── docs/                   # architecture, API, econometric rules, bilingual guides
@@ -269,7 +287,7 @@ All backend variables use the `ECOPILOT_` prefix. See [`.env.example`](.env.exam
 ## Running Tests
 
 ```bash
-# Backend (305 tests)
+# Backend (310 tests)
 cd backend
 source .venv/bin/activate
 python -m pytest -q

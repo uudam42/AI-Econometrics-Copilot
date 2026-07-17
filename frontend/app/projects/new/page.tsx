@@ -4,11 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { createProject } from "@/lib/api";
 import type { ProjectCreateRequest } from "@/types/project";
 
 export default function NewProjectPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +23,7 @@ export default function NewProjectPage() {
       const project = await createProject(req);
       router.push(`/projects/${project.project_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create project");
+      setError(err instanceof Error ? err.message : t("error.unexpected"));
     } finally {
       setSubmitting(false);
     }
@@ -31,11 +34,14 @@ export default function NewProjectPage() {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <h1 className="text-base font-semibold tracking-tight">
-            New Project
+            {t("projects.new")}
           </h1>
-          <Link href="/projects">
-            <Button variant="ghost">Back to Projects</Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Link href="/projects">
+              <Button variant="ghost">{t("projects.all_projects")}</Button>
+            </Link>
+          </div>
         </div>
       </header>
 

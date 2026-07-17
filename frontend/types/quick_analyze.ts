@@ -14,6 +14,8 @@ export interface RecommendationCard {
   outcome_variable: string;
   main_variable: string;
   control_variables: string[];
+  entity_column: string | null;
+  time_column: string | null;
   detected_structure: string;
   recommended_model: string;
   recommended_model_type: string;

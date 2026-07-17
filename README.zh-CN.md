@@ -11,7 +11,19 @@ AI 负责理解与推荐 — Python 统计库执行所有实际计算 — 用户
 
 ## 快速开始
 
-### Docker 一键启动
+### 方式一 — Windows 桌面版（最简单）
+
+从 [Releases](https://github.com/uudam42/AI-Econometrics-Copilot/releases) 下载安装包 → 安装 → 打开 → 点击「分析我的 Excel / CSV」。
+
+或者使用 PowerShell 一行命令下载：
+
+```powershell
+irm https://raw.githubusercontent.com/uudam42/AI-Econometrics-Copilot/main/installer_downloader/downloader.ps1 | iex
+```
+
+无需 Docker、Python、Node.js 或浏览器。所有数据保存在本地计算机。
+
+### 方式二 — Docker（跨平台）
 
 ```bash
 docker compose up --build
@@ -25,7 +37,7 @@ docker compose up --build
 docker compose down -v
 ```
 
-### 本地开发
+### 方式三 — 开发者启动方式
 
 ```bash
 bash scripts/start-local.sh       # macOS / Linux
@@ -40,7 +52,8 @@ make stop     # 停止两个服务
 make test     # 运行后端测试 + 前端 lint + 类型检查
 ```
 
-### 手动设置
+<details>
+<summary>手动设置（分别启动后端和前端）</summary>
 
 **后端：**
 ```bash
@@ -59,6 +72,9 @@ npm run dev
 ```
 
 打开 [http://localhost:3000](http://localhost:3000)。
+</details>
+
+> 普通用户请优先使用 Windows 安装包或下载器。Docker 和源码启动方式主要面向开发者。
 
 ---
 
@@ -162,7 +178,7 @@ ai-econometrics-copilot/
 │   │   ├── schemas/        # Pydantic 模型
 │   │   ├── services/       # 画像、结构检测、转换
 │   │   └── storage/        # SQLite 模型、仓库、数据库引擎
-│   ├── tests/              # 305 个测试
+│   ├── tests/              # 310 个测试
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
@@ -175,6 +191,7 @@ ai-econometrics-copilot/
 ├── desktop/
 │   ├── scripts/            # PowerShell / 批处理构建脚本
 │   └── src-tauri/          # Tauri 2.x Rust 外壳（菜单、sidecar 生命周期、IPC）
+├── installer_downloader/   # PowerShell 一行下载脚本
 ├── sample_data/            # 世界银行面板样本数据集
 ├── scripts/                # 启动、停止、重置脚本 (sh + ps1)
 ├── docs/                   # 架构、API、计量规则、双语指南
@@ -264,7 +281,7 @@ ai-econometrics-copilot/
 ## 运行测试
 
 ```bash
-# 后端（305 个测试）
+# 后端（310 个测试）
 cd backend
 source .venv/bin/activate
 python -m pytest -q
